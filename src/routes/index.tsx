@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "motion/react";
+import { motion, useScroll, useTransform, useInView } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 import heroImg from "@/assets/scene-hero.jpg";
 import precisionImg from "@/assets/scene-precision.jpg";
-import workshopImg from "@/assets/scene-workshop.jpg";
 import steelImg from "@/assets/scene-steel.jpg";
 
 export const Route = createFileRoute("/")({
