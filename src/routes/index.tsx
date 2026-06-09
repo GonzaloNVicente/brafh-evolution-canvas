@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useInView } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useInView, AnimatePresence } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import heroImg from "@/assets/scene-hero.jpg";
 import precisionImg from "@/assets/scene-precision.jpg";
@@ -10,7 +10,11 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "BRAFH · Inteligencia Comercial" },
-      { name: "description", content: "Una propuesta estratégica para transformar datos dispersos en inteligencia comercial." },
+      {
+        name: "description",
+        content:
+          "Una propuesta estratégica para transformar datos dispersos en inteligencia comercial.",
+      },
     ],
   }),
   component: BrafhExperience,
@@ -20,18 +24,15 @@ export const Route = createFileRoute("/")({
 
 const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  show: (d = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 1.1, ease: EASE, delay: d },
-  }),
-};
+// Deterministic pseudo-random (avoids SSR/CSR hydration drift)
+function rand(seed: number) {
+  const x = Math.sin(seed * 9301 + 49297) * 233280;
+  return x - Math.floor(x);
+}
 
 function Eyebrow({ index, label }: { index: string; label: string }) {
   return (
-    <div className="flex items-center gap-4 text-mono text-[11px] tracking-[0.28em] uppercase text-[var(--rouge)]">
+    <div className="flex items-center gap-4 font-mono text-[11px] tracking-[0.28em] uppercase text-[var(--rouge)]">
       <span>{index}</span>
       <span className="h-px w-10 bg-current opacity-50" />
       <span className="text-[var(--ink)]/60">{label}</span>
@@ -51,7 +52,7 @@ function Scene({
   const bgMap = {
     bone: "bg-[var(--bone)] text-[var(--ink)]",
     graphite: "bg-[var(--graphite)] text-[var(--bone)]",
-    ink: "bg-[#1a1a1a] text-[var(--bone)]",
+    ink: "bg-[#0f0f0f] text-[var(--bone)]",
   };
   return (
     <section
@@ -72,12 +73,12 @@ function Chrome({ current, total }: { current: number; total: number }) {
         <div className="flex items-center justify-between px-10 py-6 mix-blend-difference text-[var(--bone)]">
           <div className="flex items-center gap-3">
             <div className="h-2 w-2 rounded-full bg-[var(--rouge)]" />
-            <span className="text-mono text-[11px] tracking-[0.3em]">BRAFH / 2026</span>
+            <span className="font-mono text-[11px] tracking-[0.3em]">BRAFH / 2026</span>
           </div>
-          <span className="text-mono text-[11px] tracking-[0.3em] opacity-70">
+          <span className="font-mono text-[11px] tracking-[0.3em] opacity-70">
             PROPUESTA ESTRATÉGICA
           </span>
-          <span className="text-mono text-[11px] tracking-[0.3em] tabular-nums">
+          <span className="font-mono text-[11px] tracking-[0.3em] tabular-nums">
             {String(current + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>
         </div>
@@ -117,23 +118,21 @@ function SceneHero() {
         <motion.div style={{ scale, opacity }} className="absolute inset-0">
           <img
             src={heroImg}
-            alt="Cocina industrial BRAFH"
-            className="h-full w-full object-cover opacity-60"
+            alt="Equipamiento industrial BRAFH"
+            className="h-full w-full object-cover opacity-55"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/85" />
         </motion.div>
       </div>
 
       <div className="relative z-10 h-full flex flex-col justify-end px-10 pb-20 md:px-20 md:pb-28">
-        <motion.div initial="hidden" animate="show" variants={fadeUp} custom={0.2}>
-          <Eyebrow index="01" label="Apertura" />
-        </motion.div>
+        <Eyebrow index="01" label="Apertura" />
 
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.4, ease: EASE, delay: 0.4 }}
-          className="text-display mt-8 text-[12vw] md:text-[8.5vw] leading-[0.9]"
+          transition={{ duration: 1.4, ease: EASE, delay: 0.3 }}
+          className="font-display font-bold tracking-tight mt-8 text-[12vw] md:text-[8.5vw] leading-[0.9]"
         >
           Los datos están ahí.
           <br />
@@ -146,14 +145,14 @@ function SceneHero() {
           transition={{ duration: 1, ease: EASE, delay: 0.9 }}
           className="mt-10 max-w-xl text-lg md:text-xl text-[var(--bone)]/70 leading-relaxed"
         >
-          Una oportunidad para transformar información en inteligencia comercial.
+          De información dispersa a inteligencia comercial.
         </motion.p>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.6 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-mono text-[10px] tracking-[0.4em] text-[var(--bone)]/40"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-[0.4em] text-[var(--bone)]/40"
         >
           <motion.span
             animate={{ y: [0, 6, 0] }}
@@ -168,29 +167,88 @@ function SceneHero() {
   );
 }
 
-/* ───────────────────── scene 2: SISTEMA ACTUAL ───────────────────── */
+/* ───────────────────── scene 2: SISTEMA ACTUAL (living ecosystem) ───────────────────── */
 
 const PLATFORMS = [
-  { name: "Meta Ads", x: 12, y: 22 },
+  { name: "Meta Ads", x: 14, y: 24 },
   { name: "Google Ads", x: 78, y: 18 },
-  { name: "Instagram", x: 30, y: 70 },
-  { name: "Shopify", x: 65, y: 60 },
-  { name: "WhatsApp", x: 18, y: 50 },
-  { name: "Analytics", x: 85, y: 75 },
-  { name: "Odoo", x: 48, y: 38 },
+  { name: "Instagram", x: 28, y: 68 },
+  { name: "Shopify", x: 62, y: 58 },
+  { name: "WhatsApp", x: 18, y: 46 },
+  { name: "Analytics", x: 84, y: 72 },
+  { name: "Odoo", x: 50, y: 38 },
 ];
 
 function SceneSystem() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
 
+  // precompute deterministic particle vectors per platform
+  const particles = useMemo(
+    () =>
+      PLATFORMS.map((_, i) =>
+        Array.from({ length: 7 }).map((_, j) => ({
+          dx: (rand(i * 11 + j) - 0.5) * 180,
+          dy: (rand(i * 13 + j + 7) - 0.5) * 180,
+          delay: rand(i * 17 + j) * 2.5,
+          dur: 2.4 + rand(i + j * 5) * 1.6,
+        })),
+      ),
+    [],
+  );
+
+  // broken / dashed half-paths between random platform pairs
+  const brokenPairs = useMemo(
+    () => [
+      [0, 4],
+      [1, 6],
+      [2, 3],
+      [4, 6],
+      [3, 5],
+    ],
+    [],
+  );
+
   return (
     <Scene id="scene-2" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+      >
         <Eyebrow index="02" label="Sistema actual" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-2xl">
-          Información en todas partes.
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-2xl">
+          Siete plataformas. <br />
+          <span className="text-[var(--ink)]/40">Cero conexión.</span>
         </h2>
+
+        {/* broken connection layer */}
+        <svg className="absolute inset-0 h-full w-full pointer-events-none" preserveAspectRatio="none">
+          {brokenPairs.map(([a, b], k) => {
+            const A = PLATFORMS[a];
+            const B = PLATFORMS[b];
+            return (
+              <motion.line
+                key={k}
+                x1={`${A.x}%`}
+                y1={`${A.y}%`}
+                x2={`${(A.x + B.x) / 2}%`}
+                y2={`${(A.y + B.y) / 2}%`}
+                stroke="var(--rouge)"
+                strokeWidth="1"
+                strokeDasharray="3 6"
+                strokeOpacity="0.35"
+                initial={{ pathLength: 0 }}
+                animate={inView ? { pathLength: [0, 0.55, 0.55] } : {}}
+                transition={{
+                  duration: 3,
+                  delay: 0.4 + k * 0.25,
+                  repeat: Infinity,
+                  repeatDelay: 1.4,
+                }}
+              />
+            );
+          })}
+        </svg>
 
         <div className="absolute inset-0 pointer-events-none">
           {PLATFORMS.map((p, i) => (
@@ -198,36 +256,42 @@ function SceneSystem() {
               key={p.name}
               initial={{ opacity: 0, scale: 0.6 }}
               animate={inView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.3 + i * 0.12, ease: EASE }}
+              transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: EASE }}
               className="absolute"
               style={{ left: `${p.x}%`, top: `${p.y}%` }}
             >
               <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
-                className="relative"
+                animate={{ y: [0, -6, 0] }}
+                transition={{
+                  duration: 4 + (i % 3) * 0.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="px-4 py-2 border border-[var(--ink)]/15 bg-[var(--bone)] text-mono text-[11px] tracking-[0.2em] uppercase shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]">
+                <div className="px-4 py-2 border border-[var(--ink)]/15 bg-[var(--bone)] font-mono text-[11px] tracking-[0.2em] uppercase shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)] flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)] animate-pulse" />
                   {p.name}
                 </div>
-                {/* dispersing particles */}
-                {Array.from({ length: 6 }).map((_, j) => (
+                {/* dispersing particles (data leaks) */}
+                {particles[i].map((pt, j) => (
                   <motion.div
                     key={j}
                     className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-[var(--rouge)]"
                     animate={
                       inView
                         ? {
-                            x: [0, (Math.random() - 0.5) * 120],
-                            y: [0, (Math.random() - 0.5) * 120],
-                            opacity: [0.8, 0],
+                            x: [0, pt.dx],
+                            y: [0, pt.dy],
+                            opacity: [0.9, 0],
+                            scale: [1, 0.4],
                           }
                         : {}
                     }
                     transition={{
-                      duration: 3,
+                      duration: pt.dur,
                       repeat: Infinity,
-                      delay: j * 0.4 + i * 0.2,
+                      delay: pt.delay,
                       ease: "easeOut",
                     }}
                   />
@@ -237,79 +301,97 @@ function SceneSystem() {
           ))}
         </div>
 
-        <p className="absolute bottom-20 left-10 md:left-20 max-w-md text-[var(--ink)]/60 text-base">
-          Siete plataformas. Ninguna se habla. Cada dato se evapora antes de
-          convertirse en decisión.
-        </p>
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between gap-6 font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
+          <span>FIG. 02 · ECOSISTEMA FRAGMENTADO</span>
+          <span>SIN HUB CENTRAL</span>
+        </div>
       </div>
     </Scene>
   );
 }
 
-/* ───────────────────── scene 3: PUNTOS DE FUGA ───────────────────── */
+/* ───────────────────── scene 3: PUNTOS DE FUGA (visual leak) ───────────────────── */
 
 function SceneLeaks() {
-  const leaks = [
-    { label: "Lead perdido", x: 18, y: 30 },
-    { label: "Origen desconocido", x: 62, y: 25 },
-    { label: "ROI desconocido", x: 30, y: 60 },
-    { label: "Seguimiento inconsistente", x: 70, y: 70 },
-  ];
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
 
+  const streams = useMemo(
+    () =>
+      Array.from({ length: 22 }).map((_, i) => ({
+        x: 10 + rand(i) * 80,
+        delay: rand(i + 100) * 4,
+        dur: 3 + rand(i + 200) * 2,
+        size: 2 + rand(i + 50) * 2,
+      })),
+    [],
+  );
+
   return (
     <Scene id="scene-3" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+      >
         <Eyebrow index="03" label="Puntos de fuga" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
-          Lo que <span className="text-[var(--rouge)]">no se mide</span>, se
-          escapa.
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
+          Lo que <span className="text-[var(--rouge)]">no se mide</span>,<br />
+          se escapa.
         </h2>
 
-        <div className="absolute inset-0 pointer-events-none">
-          {leaks.map((leak, i) => (
-            <motion.div
-              key={leak.label}
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: [0, 1, 1, 0.15] } : {}}
-              transition={{
-                duration: 4,
-                delay: 0.4 + i * 0.5,
-                repeat: Infinity,
-                repeatDelay: 2,
-                times: [0, 0.2, 0.7, 1],
-                ease: EASE,
+        {/* the bucket: a horizontal line — particles fall through */}
+        <div className="absolute inset-x-10 md:inset-x-20 top-[42%]">
+          <div className="relative h-px bg-[var(--ink)]/20">
+            {/* holes in the bucket */}
+            {[18, 38, 58, 78].map((p, i) => (
+              <div
+                key={i}
+                className="absolute top-0 h-2 w-8 -translate-y-1/2 bg-[var(--bone)]"
+                style={{ left: `${p}%` }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* falling data drops */}
+        <div className="absolute inset-x-10 md:inset-x-20 top-[42%] bottom-10 pointer-events-none overflow-hidden">
+          {streams.map((s, i) => (
+            <motion.span
+              key={i}
+              className="absolute rounded-full bg-[var(--rouge)]"
+              style={{
+                left: `${s.x}%`,
+                top: 0,
+                width: s.size,
+                height: s.size,
               }}
-              className="absolute"
-              style={{ left: `${leak.x}%`, top: `${leak.y}%` }}
-            >
-              <div className="relative">
-                <div className="absolute -inset-3 rounded-full border border-[var(--rouge)]/30" />
-                <div className="px-3 py-1.5 bg-[var(--rouge)] text-[var(--bone)] text-mono text-[10px] tracking-[0.22em] uppercase">
-                  {leak.label}
-                </div>
-                <motion.div
-                  className="absolute left-1/2 top-full mt-2 h-px w-px bg-[var(--rouge)]"
-                  animate={inView ? { height: [0, 80, 80], opacity: [1, 1, 0] } : {}}
-                  transition={{
-                    duration: 4,
-                    delay: 0.4 + i * 0.5,
-                    repeat: Infinity,
-                    repeatDelay: 2,
-                  }}
-                />
-              </div>
-            </motion.div>
+              animate={
+                inView
+                  ? { y: ["0%", "100%"], opacity: [1, 1, 0] }
+                  : {}
+              }
+              transition={{
+                duration: s.dur,
+                delay: s.delay,
+                repeat: Infinity,
+                ease: "easeIn",
+                times: [0, 0.85, 1],
+              }}
+            />
           ))}
         </div>
 
-        <div className="absolute bottom-20 left-10 md:left-20 right-10 md:right-20 flex flex-wrap items-end justify-between gap-6">
-          <p className="max-w-md text-[var(--ink)]/60 text-base">
-            Cada gota es una venta posible, un cliente que vuelve, una decisión
-            informada — perdida en el silencio entre sistemas.
-          </p>
-          <div className="text-mono text-xs text-[var(--ink)]/40">FIG. 03 · LEAKAGE MAP</div>
+        {/* labels positioned over the holes — minimal */}
+        <div className="absolute inset-x-10 md:inset-x-20 top-[36%] flex justify-between font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/50">
+          <span>Lead perdido</span>
+          <span>Origen ?</span>
+          <span>ROI ?</span>
+          <span>Sin seguimiento</span>
+        </div>
+
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between gap-6 font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
+          <span>FIG. 03 · LEAKAGE MAP</span>
+          <span>FUGA CONTINUA</span>
         </div>
       </div>
     </Scene>
@@ -324,7 +406,10 @@ function SceneKeyMoment() {
 
   return (
     <Scene id="scene-4" bg="graphite">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full flex flex-col justify-center px-10 md:px-20"
+      >
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
@@ -337,135 +422,241 @@ function SceneKeyMoment() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.4, ease: EASE, delay: 0.2 }}
-          className="text-display mt-10 text-[8vw] md:text-[6vw] max-w-6xl"
+          className="font-display font-bold tracking-tight mt-10 text-[8vw] md:text-[6vw] max-w-6xl leading-[0.95]"
         >
-          El problema no es la <br />
-          <span className="text-[var(--bone)]/30">falta de datos.</span>
+          No falta <span className="text-[var(--bone)]/30">información.</span>
         </motion.h2>
 
         <motion.h3
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.4, ease: EASE, delay: 0.8 }}
-          className="text-display mt-6 text-[8vw] md:text-[6vw] max-w-6xl"
+          className="font-display font-bold tracking-tight mt-6 text-[8vw] md:text-[6vw] max-w-6xl leading-[0.95]"
         >
-          El problema es que <br />
-          <span className="text-[var(--rouge)]">no están conectados.</span>
+          Falta <span className="text-[var(--rouge)]">conexión.</span>
         </motion.h3>
       </div>
     </Scene>
   );
 }
 
-/* ───────────────────── scene 5: TRANSFORMACIÓN ───────────────────── */
+/* ───────────────────── scene 5: TRANSFORMACIÓN (cinematic converge) ───────────────────── */
 
 function SceneTransformation() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
 
-  const nodes = [
-    { name: "Meta Ads", x: 10 },
-    { name: "Shopify", x: 32 },
-    { name: "WhatsApp", x: 54 },
-    { name: "Odoo CRM", x: 76, primary: true },
-    { name: "Dashboard", x: 92 },
+  // platforms orbit around a central Odoo hub then dashboard
+  const sources = [
+    { name: "Meta Ads", angle: -150 },
+    { name: "Google Ads", angle: -110 },
+    { name: "Instagram", angle: -70 },
+    { name: "Shopify", angle: 150 },
+    { name: "WhatsApp", angle: 110 },
+    { name: "Analytics", angle: 70 },
   ];
 
   return (
     <Scene id="scene-5" bg="graphite">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+      >
         <Eyebrow index="05" label="Arquitectura" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
-          Una sola corriente de información.
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
+          Todo converge.
         </h2>
 
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-10 md:px-20">
-          <svg viewBox="0 0 1000 200" className="w-full h-40">
-            <motion.path
-              d="M 80 100 C 200 100, 280 100, 400 100 S 600 100, 760 100 S 900 100, 940 100"
-              fill="none"
-              stroke="var(--rouge)"
-              strokeWidth="1.5"
-              initial={{ pathLength: 0 }}
-              animate={inView ? { pathLength: 1 } : {}}
-              transition={{ duration: 2.2, ease: EASE, delay: 0.4 }}
-            />
-          </svg>
-
-          <div className="absolute inset-0 flex items-center justify-between">
-            {nodes.map((n, i) => (
-              <motion.div
-                key={n.name}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.6, delay: 0.6 + i * 0.3, ease: EASE }}
-                className="flex flex-col items-center gap-3"
-                style={{ width: "20%" }}
-              >
-                <div
-                  className={`relative h-14 w-14 rounded-full flex items-center justify-center ${
-                    n.primary
-                      ? "bg-[var(--rouge)]"
-                      : "bg-[var(--bone)]/5 border border-[var(--bone)]/20"
-                  }`}
-                >
-                  <motion.div
-                    className="absolute inset-0 rounded-full border border-[var(--rouge)]/40"
-                    animate={inView ? { scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] } : {}}
-                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="relative w-[640px] h-[420px] max-w-[90vw]">
+            {/* Connection lines */}
+            <svg className="absolute inset-0 h-full w-full" viewBox="-320 -210 640 420">
+              {sources.map((s, i) => {
+                const rad = (s.angle * Math.PI) / 180;
+                const x = Math.cos(rad) * 260;
+                const y = Math.sin(rad) * 170;
+                return (
+                  <motion.line
+                    key={s.name}
+                    x1={x}
+                    y1={y}
+                    x2={-160}
+                    y2={0}
+                    stroke="var(--rouge)"
+                    strokeWidth="1"
+                    strokeOpacity="0.55"
+                    initial={{ pathLength: 0 }}
+                    animate={inView ? { pathLength: 1 } : {}}
+                    transition={{ duration: 1.4, delay: 0.4 + i * 0.12, ease: EASE }}
                   />
-                  <div className={`h-2 w-2 rounded-full ${n.primary ? "bg-[var(--bone)]" : "bg-[var(--rouge)]"}`} />
-                </div>
-                <span className="text-mono text-[10px] tracking-[0.22em] uppercase text-[var(--bone)]/70">
-                  {n.name}
+                );
+              })}
+              {/* hub → dashboard */}
+              <motion.line
+                x1={-160}
+                y1={0}
+                x2={200}
+                y2={0}
+                stroke="var(--bone)"
+                strokeWidth="1.2"
+                strokeOpacity="0.7"
+                initial={{ pathLength: 0 }}
+                animate={inView ? { pathLength: 1 } : {}}
+                transition={{ duration: 1.2, delay: 1.8, ease: EASE }}
+              />
+
+              {/* travelling data dots on each line */}
+              {sources.map((s, i) => {
+                const rad = (s.angle * Math.PI) / 180;
+                const x = Math.cos(rad) * 260;
+                const y = Math.sin(rad) * 170;
+                return (
+                  <motion.circle
+                    key={`d-${s.name}`}
+                    r="2.5"
+                    fill="var(--rouge)"
+                    initial={{ cx: x, cy: y, opacity: 0 }}
+                    animate={
+                      inView
+                        ? {
+                            cx: [x, -160],
+                            cy: [y, 0],
+                            opacity: [0, 1, 1, 0],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 1.8,
+                      delay: 2.2 + i * 0.25,
+                      repeat: Infinity,
+                      repeatDelay: 0.6,
+                      ease: "easeInOut",
+                    }}
+                  />
+                );
+              })}
+              {/* hub → dashboard particle */}
+              <motion.circle
+                r="2.5"
+                fill="var(--bone)"
+                initial={{ cx: -160, cy: 0, opacity: 0 }}
+                animate={
+                  inView
+                    ? { cx: [-160, 200], cy: [0, 0], opacity: [0, 1, 1, 0] }
+                    : {}
+                }
+                transition={{
+                  duration: 1.6,
+                  delay: 3,
+                  repeat: Infinity,
+                  repeatDelay: 0.4,
+                  ease: "easeInOut",
+                }}
+              />
+            </svg>
+
+            {/* Source nodes */}
+            {sources.map((s, i) => {
+              const rad = (s.angle * Math.PI) / 180;
+              const x = Math.cos(rad) * 260;
+              const y = Math.sin(rad) * 170;
+              return (
+                <motion.div
+                  key={s.name}
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style={{ x, y }}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={inView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.6, delay: 0.2 + i * 0.1, ease: EASE }}
+                >
+                  <div className="px-3 py-1.5 border border-[var(--bone)]/20 bg-[var(--graphite)] font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--bone)]/80">
+                    {s.name}
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Odoo central hub */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{ x: -160, y: 0 }}
+              initial={{ opacity: 0, scale: 0 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.8, delay: 1.6, ease: EASE }}
+            >
+              <div className="relative h-20 w-20 rounded-full bg-[var(--rouge)] flex items-center justify-center">
+                <motion.div
+                  className="absolute inset-0 rounded-full border border-[var(--rouge)]"
+                  animate={inView ? { scale: [1, 2, 1], opacity: [0.7, 0, 0.7] } : {}}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-[var(--bone)]">
+                  Odoo
                 </span>
-              </motion.div>
-            ))}
+              </div>
+            </motion.div>
+
+            {/* Dashboard panel */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-y-1/2"
+              style={{ x: 100 }}
+              initial={{ opacity: 0, x: 140 }}
+              animate={inView ? { opacity: 1, x: 100 } : {}}
+              transition={{ duration: 1, delay: 2.6, ease: EASE }}
+            >
+              <div className="w-44 border border-[var(--bone)]/25 bg-[var(--bone)]/5 backdrop-blur p-3">
+                <div className="flex items-center justify-between font-mono text-[9px] tracking-[0.22em] text-[var(--bone)]/60">
+                  <span>DASHBOARD</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)] animate-pulse" />
+                </div>
+                <div className="mt-3 space-y-2">
+                  {[60, 85, 45, 72].map((w, i) => (
+                    <motion.div
+                      key={i}
+                      className="h-1 bg-[var(--rouge)]"
+                      initial={{ scaleX: 0 }}
+                      animate={inView ? { scaleX: w / 100 } : {}}
+                      transition={{ duration: 1, delay: 3 + i * 0.15, ease: EASE }}
+                      style={{ transformOrigin: "left" }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
 
-        <p className="absolute bottom-20 left-10 md:left-20 max-w-md text-[var(--bone)]/50 text-base">
-          Cada plataforma deja de ser una isla. Empieza a alimentar un solo
-          cerebro operativo.
-        </p>
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between font-mono text-[10px] tracking-[0.3em] text-[var(--bone)]/40">
+          <span>FIG. 05 · ARQUITECTURA UNIFICADA</span>
+          <span>ODOO · HUB CENTRAL</span>
+        </div>
       </div>
     </Scene>
   );
 }
 
-/* ───────────────────── scene 6: ROADMAP ───────────────────── */
+/* ───────────────────── scene 6: ROADMAP overview ───────────────────── */
 
 function SceneRoadmap() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.3 });
 
   const stages = [
-    {
-      n: "01",
-      t: "Visibilidad",
-      m: "Mes 01 — 03",
-      d: "Conectar fuentes. Capturar cada lead. Asignar responsables.",
-    },
-    {
-      n: "02",
-      t: "Atribución",
-      m: "Mes 04 — 06",
-      d: "Saber de dónde viene cada venta. Calcular costo real por canal.",
-    },
-    {
-      n: "03",
-      t: "Inteligencia Comercial",
-      m: "Mes 07 — 09",
-      d: "Decisiones predictivas. Pronósticos. Optimización continua.",
-    },
+    { n: "01", t: "Visibilidad", m: "Mes 01 — 03" },
+    { n: "02", t: "Atribución", m: "Mes 04 — 06" },
+    { n: "03", t: "Inteligencia", m: "Mes 07 — 09" },
   ];
 
   return (
     <Scene id="scene-6" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24 flex flex-col">
-        <Eyebrow index="06" label="Roadmap general" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
-          Tres etapas. Una sola dirección.
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24 flex flex-col"
+      >
+        <Eyebrow index="06" label="Roadmap" />
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
+          Tres etapas.<br />
+          <span className="text-[var(--ink)]/40">Una sola dirección.</span>
         </h2>
 
         <div className="relative mt-auto pt-20">
@@ -485,10 +676,12 @@ function SceneRoadmap() {
                 transition={{ duration: 1, ease: EASE, delay: 0.5 + i * 0.3 }}
                 className="relative"
               >
-                <div className="text-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
+                <div className="font-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
                   ETAPA {s.n}
                 </div>
-                <h3 className="text-display mt-3 text-4xl md:text-5xl">{s.t}</h3>
+                <h3 className="font-display font-bold tracking-tight mt-3 text-4xl md:text-5xl">
+                  {s.t}
+                </h3>
                 <div className="relative my-12">
                   <motion.div
                     initial={{ scale: 0 }}
@@ -497,12 +690,9 @@ function SceneRoadmap() {
                     className="h-3 w-3 rounded-full bg-[var(--rouge)]"
                   />
                 </div>
-                <div className="text-mono text-xs text-[var(--ink)]/50 tracking-[0.2em]">
+                <div className="font-mono text-xs text-[var(--ink)]/50 tracking-[0.2em]">
                   {s.m}
                 </div>
-                <p className="mt-4 text-[var(--ink)]/70 text-base leading-relaxed max-w-xs">
-                  {s.d}
-                </p>
               </motion.div>
             ))}
           </div>
@@ -512,7 +702,7 @@ function SceneRoadmap() {
   );
 }
 
-/* ───────────────────── scene 7: ETAPA 1 VISIBILIDAD ───────────────────── */
+/* ───────────────────── scene 7: VISIBILIDAD (live connection WA→Odoo) ───────────────────── */
 
 function SceneVisibilidad() {
   const ref = useRef<HTMLElement>(null);
@@ -520,71 +710,97 @@ function SceneVisibilidad() {
 
   return (
     <Scene id="scene-7" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="grid h-full grid-cols-1 md:grid-cols-2">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="grid h-full grid-cols-1 md:grid-cols-[1fr_1.2fr]"
+      >
         <div className="relative flex flex-col justify-center px-10 py-20 md:px-20">
-          <Eyebrow index="07" label="Etapa 01 / Visibilidad" />
-          <h2 className="text-display mt-6 text-5xl md:text-6xl">
-            Ningún lead vuelve a perderse.
+          <Eyebrow index="07" label="Etapa 01 · Visibilidad" />
+          <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl">
+            WhatsApp <br />
+            <span className="text-[var(--rouge)]">se conecta</span> a Odoo.
           </h2>
-          <p className="mt-8 max-w-md text-[var(--ink)]/70 text-base leading-relaxed">
-            WhatsApp Business API conectado a Odoo CRM. Cada conversación entra
-            con origen, estado y responsable — automáticamente.
-          </p>
-
-          <div className="mt-10 flex items-center gap-4 text-mono text-[10px] tracking-[0.25em] uppercase">
-            <span className="text-[var(--ink)]/40">Origen</span>
-            <span className="text-[var(--ink)]/20">·</span>
-            <span className="text-[var(--ink)]/40">Estado</span>
-            <span className="text-[var(--ink)]/20">·</span>
-            <span className="text-[var(--ink)]/40">Responsable</span>
-          </div>
         </div>
 
-        <div className="relative bg-[var(--ash)]/40 flex items-center justify-center p-10">
-          {/* Before / After */}
-          <div className="relative w-full max-w-md">
+        <div className="relative bg-[var(--ash)]/40 flex items-center justify-center p-10 overflow-hidden">
+          <div className="relative w-full max-w-md h-[340px]">
+            {/* WA node */}
             <motion.div
-              initial={{ opacity: 1 }}
-              animate={inView ? { opacity: [1, 1, 0] } : {}}
-              transition={{ duration: 3, delay: 0.5, repeat: Infinity, repeatDelay: 2 }}
-              className="absolute inset-0 border border-[var(--ink)]/15 bg-[var(--bone)] p-6"
+              initial={{ opacity: 0, x: -20 }}
+              animate={inView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8 }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 px-4 py-3 border border-[var(--ink)]/20 bg-[var(--bone)] font-mono text-[11px] tracking-[0.22em] uppercase"
             >
-              <div className="text-mono text-[10px] tracking-[0.25em] text-[var(--ink)]/40">
-                ANTES
-              </div>
-              {["Mensaje sin registro", "Sin responsable", "Sin origen"].map((t) => (
-                <div key={t} className="mt-4 flex items-center gap-3">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)]" />
-                  <span className="text-[var(--ink)]/50 line-through">{t}</span>
-                </div>
-              ))}
+              WhatsApp API
+            </motion.div>
+            {/* Odoo node */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={inView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 px-4 py-3 bg-[var(--rouge)] text-[var(--bone)] font-mono text-[11px] tracking-[0.22em] uppercase"
+            >
+              Odoo CRM
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: [0, 0, 1, 1] } : {}}
-              transition={{ duration: 3, delay: 0.5, repeat: Infinity, repeatDelay: 2 }}
-              className="relative border border-[var(--ink)]/15 bg-[var(--bone)] p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.25)]"
-            >
-              <div className="flex items-center justify-between text-mono text-[10px] tracking-[0.25em]">
-                <span className="text-[var(--rouge)]">DESPUÉS</span>
-                <span className="text-[var(--ink)]/40">ODOO · CRM</span>
-              </div>
-              <div className="mt-6 space-y-4">
-                {[
-                  ["Origen", "WhatsApp / Meta Ads"],
-                  ["Estado", "Cualificado"],
-                  ["Responsable", "Equipo Comercial"],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between border-b border-[var(--ink)]/10 pb-3">
-                    <span className="text-mono text-[10px] tracking-[0.22em] uppercase text-[var(--ink)]/50">
-                      {k}
-                    </span>
-                    <span className="text-sm">{v}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            {/* connection */}
+            <svg className="absolute inset-0 h-full w-full">
+              <motion.line
+                x1="22%"
+                y1="50%"
+                x2="78%"
+                y2="50%"
+                stroke="var(--rouge)"
+                strokeWidth="1.2"
+                initial={{ pathLength: 0 }}
+                animate={inView ? { pathLength: 1 } : {}}
+                transition={{ duration: 1.4, delay: 0.6, ease: EASE }}
+              />
+              {[0, 0.6, 1.2].map((d, i) => (
+                <motion.circle
+                  key={i}
+                  r="3"
+                  fill="var(--rouge)"
+                  initial={{ opacity: 0 }}
+                  animate={
+                    inView
+                      ? {
+                          cx: ["22%", "78%"],
+                          cy: ["50%", "50%"],
+                          opacity: [0, 1, 1, 0],
+                        }
+                      : {}
+                  }
+                  transition={{
+                    duration: 1.8,
+                    delay: 2 + d,
+                    repeat: Infinity,
+                    repeatDelay: 0.8,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
+            </svg>
+
+            {/* live lead cards appearing in Odoo */}
+            <div className="absolute right-0 bottom-0 w-56 space-y-2">
+              {[
+                ["L-0421", "Cualificado"],
+                ["L-0422", "Nuevo"],
+                ["L-0423", "Seguimiento"],
+              ].map(([id, st], i) => (
+                <motion.div
+                  key={id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, delay: 2.4 + i * 0.5, ease: EASE }}
+                  className="flex items-center justify-between border border-[var(--ink)]/15 bg-[var(--bone)] px-3 py-2 font-mono text-[10px] tracking-[0.18em]"
+                >
+                  <span className="text-[var(--rouge)]">{id}</span>
+                  <span className="text-[var(--ink)]/60 uppercase">{st}</span>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -592,129 +808,170 @@ function SceneVisibilidad() {
   );
 }
 
-/* ───────────────────── scene 8: ETAPA 2 ATRIBUCIÓN ───────────────────── */
+/* ───────────────────── scene 8: ATRIBUCIÓN (origin tags) ───────────────────── */
 
 function SceneAtribucion() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.4 });
-  const channels = ["Meta Ads", "Google Ads", "Instagram", "Referidos"];
+  const channels = [
+    { name: "Meta", value: 38, color: "var(--rouge)" },
+    { name: "Google", value: 27, color: "var(--ink)" },
+    { name: "Instagram", value: 21, color: "var(--rouge)" },
+    { name: "Referido", value: 14, color: "var(--ink)" },
+  ];
+
+  const leads = useMemo(
+    () =>
+      Array.from({ length: 16 }).map((_, i) => ({
+        ch: i % 4,
+        delay: rand(i) * 1.6,
+      })),
+    [],
+  );
 
   return (
     <Scene id="scene-8" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
-        <Eyebrow index="08" label="Etapa 02 / Atribución" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
-          ¿Cómo nos conociste?
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+      >
+        <Eyebrow index="08" label="Etapa 02 · Atribución" />
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
+          Cada venta <br />
+          <span className="text-[var(--rouge)]">tiene un origen.</span>
         </h2>
-        <p className="mt-6 max-w-xl text-[var(--ink)]/70">
-          Una pregunta. Cuatro canales. Trazabilidad completa.
-        </p>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-10 items-center">
-          <div className="space-y-3">
-            {channels.map((c, i) => (
-              <motion.div
-                key={c}
-                initial={{ opacity: 0, x: -20 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.4 + i * 0.15, ease: EASE }}
-                className="flex items-center justify-between border-b border-[var(--ink)]/15 pb-3"
-              >
-                <span className="text-lg">{c}</span>
-                <span className="text-mono text-[10px] tracking-[0.25em] text-[var(--ink)]/40">
-                  CH/0{i + 1}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="hidden md:flex flex-col items-center">
-            <svg width="120" height="120" viewBox="0 0 120 120">
-              <motion.path
-                d="M 10 60 C 50 60, 70 60, 110 60"
-                stroke="var(--rouge)"
-                strokeWidth="1.5"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={inView ? { pathLength: 1 } : {}}
-                transition={{ duration: 1.2, delay: 1, ease: EASE }}
-              />
-              <motion.circle
-                cx="110"
-                cy="60"
-                r="4"
-                fill="var(--rouge)"
-                initial={{ scale: 0 }}
-                animate={inView ? { scale: 1 } : {}}
-                transition={{ delay: 2.2 }}
-              />
-            </svg>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={inView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 1, delay: 1.4, ease: EASE }}
-            className="border border-[var(--ink)]/15 bg-[var(--bone)] p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.2)]"
-          >
-            <div className="text-mono text-[10px] tracking-[0.25em] text-[var(--rouge)]">
-              ATRIBUCIÓN COMPLETA
-            </div>
-            <div className="mt-6 space-y-3 text-sm">
-              <div className="flex justify-between"><span>Canal</span><span className="text-[var(--ink)]/60">Meta Ads</span></div>
-              <div className="flex justify-between"><span>Costo por lead</span><span className="text-[var(--ink)]/60">$ 18.40</span></div>
-              <div className="flex justify-between"><span>Tasa de cierre</span><span className="text-[var(--ink)]/60">14.2%</span></div>
-              <div className="flex justify-between font-medium border-t border-[var(--ink)]/15 pt-3 mt-3">
-                <span>ROI</span><span className="text-[var(--rouge)]">4.7×</span>
+        <div className="mt-14 grid grid-cols-4 gap-3">
+          {channels.map((c, i) => (
+            <motion.div
+              key={c.name}
+              initial={{ opacity: 0, y: 10 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.3 + i * 0.1 }}
+              className="relative"
+            >
+              <div className="flex items-baseline justify-between font-mono text-[10px] tracking-[0.22em] uppercase">
+                <span>{c.name}</span>
+                <span className="text-[var(--ink)]/50">{c.value}%</span>
               </div>
-            </div>
-          </motion.div>
+              <div className="mt-2 h-1 w-full bg-[var(--ink)]/10 overflow-hidden">
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={inView ? { scaleX: c.value / 40 } : {}}
+                  transition={{ duration: 1.2, delay: 0.5 + i * 0.1, ease: EASE }}
+                  style={{ transformOrigin: "left", background: c.color }}
+                  className="h-full"
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* leads being tagged with origin */}
+        <div className="mt-12 grid grid-cols-4 gap-3 gap-y-3">
+          {leads.map((l, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.5, delay: 0.8 + l.delay, ease: EASE }}
+              className="flex items-center justify-between border border-[var(--ink)]/12 bg-[var(--bone)] px-3 py-2 font-mono text-[10px] tracking-[0.18em]"
+            >
+              <span className="text-[var(--ink)]/70">
+                L-{String(420 + i).padStart(4, "0")}
+              </span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={inView ? { opacity: 1 } : {}}
+                transition={{ delay: 1.4 + l.delay }}
+                className="uppercase"
+                style={{ color: channels[l.ch].color }}
+              >
+                {channels[l.ch].name}
+              </motion.span>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="absolute bottom-10 right-10 md:right-20 font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
+          ETIQUETADO AUTOMÁTICO
         </div>
       </div>
     </Scene>
   );
 }
 
-/* ───────────────────── scene 9: INTELIGENCIA COMERCIAL ───────────────────── */
+/* ───────────────────── scene 9: INTELIGENCIA · Dashboard ───────────────────── */
 
 function SceneInteligencia() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.3 });
 
   const kpis = [
-    { label: "Leads / canal", value: "1,284", delta: "+ 23%" },
-    { label: "Costo por lead", value: "$ 16.20", delta: "− 12%" },
+    { label: "Canal más rentable", value: "Meta", delta: "ROI 5.1×" },
+    { label: "Costo por lead", value: "$16.20", delta: "− 12%" },
     { label: "Conversión", value: "11.8%", delta: "+ 4.1 pts" },
     { label: "Tiempo respuesta", value: "3m 12s", delta: "− 68%" },
-    { label: "Tendencia mensual", value: "↑ 18%", delta: "vs Q anterior" },
-    { label: "ROI consolidado", value: "5.1×", delta: "Odoo · live" },
+    { label: "Tendencia mensual", value: "↑ 18%", delta: "vs Q ant." },
+    { label: "Buyer persona top", value: "Hotelería", delta: "42% leads" },
   ];
+
+  // mini sparkline path
+  const spark = useMemo(
+    () =>
+      Array.from({ length: 16 })
+        .map((_, i) => {
+          const y = 20 - rand(i + 3) * 16;
+          return `${i === 0 ? "M" : "L"} ${i * 6} ${y}`;
+        })
+        .join(" "),
+    [],
+  );
 
   return (
     <Scene id="scene-9" bg="graphite">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
-        <Eyebrow index="09" label="Etapa 03 / Inteligencia comercial" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
-          El cuadro de mando que faltaba.
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+      >
+        <Eyebrow index="09" label="Etapa 03 · Inteligencia" />
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
+          Cuadro de mando comercial.
         </h2>
 
-        <div className="mt-14 grid grid-cols-2 md:grid-cols-3 gap-px bg-[var(--bone)]/10">
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-3 gap-px bg-[var(--bone)]/10">
           {kpis.map((k, i) => (
             <motion.div
               key={k.label}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: EASE }}
-              className="bg-[var(--graphite)] p-8 min-h-[170px] flex flex-col justify-between"
+              transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: EASE }}
+              className="bg-[var(--graphite)] p-6 min-h-[170px] flex flex-col justify-between relative overflow-hidden"
             >
-              <div className="text-mono text-[10px] tracking-[0.25em] uppercase text-[var(--bone)]/50">
+              <div className="font-mono text-[10px] tracking-[0.25em] uppercase text-[var(--bone)]/50">
                 {k.label}
               </div>
+              <svg
+                className="absolute right-4 top-4 opacity-40"
+                width="100"
+                height="22"
+                viewBox="0 0 100 22"
+              >
+                <motion.path
+                  d={spark}
+                  fill="none"
+                  stroke="var(--rouge)"
+                  strokeWidth="1"
+                  initial={{ pathLength: 0 }}
+                  animate={inView ? { pathLength: 1 } : {}}
+                  transition={{ duration: 1.6, delay: 0.6 + i * 0.1 }}
+                />
+              </svg>
               <div>
-                <div className="text-display text-4xl md:text-5xl text-[var(--bone)]">
+                <div className="font-display font-bold tracking-tight text-3xl md:text-4xl text-[var(--bone)]">
                   {k.value}
                 </div>
-                <div className="mt-2 text-mono text-[11px] text-[var(--rouge)]">
+                <div className="mt-2 font-mono text-[11px] text-[var(--rouge)]">
                   {k.delta}
                 </div>
               </div>
@@ -722,8 +979,12 @@ function SceneInteligencia() {
           ))}
         </div>
 
-        <div className="absolute bottom-10 right-10 md:right-20 text-mono text-[10px] tracking-[0.3em] text-[var(--bone)]/40">
-          ODOO · LIVE FEED
+        <div className="absolute bottom-8 left-10 md:left-20 right-10 md:right-20 flex justify-between font-mono text-[10px] tracking-[0.3em] text-[var(--bone)]/40">
+          <span>BRAFH · COMMAND CENTER</span>
+          <span className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)] animate-pulse" />
+            LIVE · ODOO
+          </span>
         </div>
       </div>
     </Scene>
@@ -739,11 +1000,14 @@ function SceneFuture() {
 
   return (
     <Scene id="scene-10" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full flex flex-col justify-center px-10 md:px-20"
+      >
         <Eyebrow index="10" label="Estado futuro" />
-        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
-          Por primera vez, una <br />
-          <span className="text-[var(--rouge)]">visión completa del funnel.</span>
+        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
+          Visión completa <br />
+          <span className="text-[var(--rouge)]">del funnel.</span>
         </h2>
 
         <div className="mt-20 flex items-center justify-between gap-4">
@@ -756,31 +1020,43 @@ function SceneFuture() {
                 className="flex flex-col items-center gap-3"
               >
                 <div className="relative h-16 w-16 rounded-full border border-[var(--ink)]/20 flex items-center justify-center bg-[var(--bone)]">
-                  <span className="text-mono text-[11px] tracking-[0.2em] text-[var(--rouge)]">
+                  <span className="font-mono text-[11px] tracking-[0.2em] text-[var(--rouge)]">
                     0{i + 1}
                   </span>
                 </div>
-                <span className="text-mono text-[11px] tracking-[0.25em] uppercase">
-                  {s}
-                </span>
+                <span className="font-mono text-[11px] tracking-[0.25em] uppercase">{s}</span>
               </motion.div>
               {i < steps.length - 1 && (
-                <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={inView ? { scaleX: 1 } : {}}
-                  transition={{ duration: 0.6, delay: 0.6 + i * 0.2, ease: EASE }}
-                  style={{ transformOrigin: "left" }}
-                  className="h-px flex-1 bg-[var(--rouge)]"
-                />
+                <div className="relative h-px flex-1 bg-[var(--ink)]/15 overflow-hidden">
+                  <motion.div
+                    initial={{ scaleX: 0 }}
+                    animate={inView ? { scaleX: 1 } : {}}
+                    transition={{ duration: 0.6, delay: 0.6 + i * 0.2, ease: EASE }}
+                    style={{ transformOrigin: "left" }}
+                    className="h-px bg-[var(--rouge)]"
+                  />
+                  <motion.span
+                    className="absolute top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-[var(--rouge)]"
+                    initial={{ left: "0%" }}
+                    animate={inView ? { left: ["0%", "100%"] } : {}}
+                    transition={{
+                      duration: 2,
+                      delay: 1.6 + i * 0.2,
+                      repeat: Infinity,
+                      repeatDelay: 1,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </div>
               )}
             </div>
           ))}
         </div>
 
-        <p className="mt-20 max-w-xl text-[var(--ink)]/60">
-          Sin pérdidas. Sin puntos ciegos. Cada peso invertido tiene un nombre,
-          un origen y un resultado.
-        </p>
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40 flex justify-between">
+          <span>FIG. 10 · FUNNEL TRAZABLE</span>
+          <span>SIN PUNTOS CIEGOS</span>
+        </div>
       </div>
     </Scene>
   );
@@ -792,23 +1068,38 @@ function SceneInnovacion() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.3 });
 
+  const panels = [
+    {
+      n: "11 / A",
+      t: "Inteligencia Comercial Avanzada",
+      bullets: [
+        "Lead scoring automático",
+        "Predicción de conversión",
+        "Alertas de seguimiento",
+        "Priorización de oportunidades",
+      ],
+      img: precisionImg,
+    },
+    {
+      n: "11 / B",
+      t: "Leonardo AI",
+      bullets: [
+        "Renders fotorrealistas",
+        "Equipamiento en segundos",
+        "Propuestas con imagen propia",
+        "Pipeline visual integrado",
+      ],
+      img: steelImg,
+    },
+  ];
+
   return (
     <Scene id="scene-11" bg="ink">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="grid h-full grid-cols-1 md:grid-cols-2">
-        {[
-          {
-            n: "11 / A",
-            t: "Sound Branding",
-            d: "Una firma sonora propia. Reels, llamadas, showroom. BRAFH no se ve — se reconoce.",
-            img: precisionImg,
-          },
-          {
-            n: "11 / B",
-            t: "Leonardo AI",
-            d: "Renders fotorrealistas de equipamiento en segundos. Propuestas comerciales con imagen propia.",
-            img: steelImg,
-          },
-        ].map((p, i) => (
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="grid h-full grid-cols-1 md:grid-cols-2"
+      >
+        {panels.map((p, i) => (
           <motion.div
             key={p.t}
             initial={{ opacity: 0, y: 30 }}
@@ -820,15 +1111,30 @@ function SceneInnovacion() {
               src={p.img}
               alt=""
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover opacity-30"
+              className="absolute inset-0 h-full w-full object-cover opacity-25"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/65 to-black/40" />
             <div className="relative">
-              <div className="text-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
+              <div className="font-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
                 {p.n}
               </div>
-              <h3 className="text-display mt-4 text-5xl text-[var(--bone)]">{p.t}</h3>
-              <p className="mt-6 max-w-md text-[var(--bone)]/70">{p.d}</p>
+              <h3 className="font-display font-bold tracking-tight mt-4 text-4xl md:text-5xl text-[var(--bone)]">
+                {p.t}
+              </h3>
+              <ul className="mt-6 grid grid-cols-1 gap-2">
+                {p.bullets.map((b, j) => (
+                  <motion.li
+                    key={b}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={inView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ duration: 0.5, delay: 0.8 + i * 0.2 + j * 0.1 }}
+                    className="flex items-center gap-3 font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--bone)]/75"
+                  >
+                    <span className="h-px w-6 bg-[var(--rouge)]" />
+                    {b}
+                  </motion.li>
+                ))}
+              </ul>
             </div>
           </motion.div>
         ))}
@@ -845,20 +1151,17 @@ function SceneClose() {
 
   return (
     <Scene id="scene-12" bg="bone">
-      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 1 }}
-        >
-          <Eyebrow index="12" label="Cierre" />
-        </motion.div>
+      <div
+        ref={ref as React.RefObject<HTMLDivElement>}
+        className="relative h-full w-full flex flex-col justify-center px-10 md:px-20"
+      >
+        <Eyebrow index="12" label="Cierre" />
 
         <motion.h2
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.4, ease: EASE, delay: 0.3 }}
-          className="text-display mt-10 text-[8vw] md:text-[5.5vw] max-w-6xl leading-[0.95]"
+          className="font-display font-bold tracking-tight mt-10 text-[8vw] md:text-[5.5vw] max-w-6xl leading-[0.95]"
         >
           BRAFH ya lidera <br />
           en producto.
@@ -868,7 +1171,7 @@ function SceneClose() {
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.4, ease: EASE, delay: 0.7 }}
-          className="text-display mt-6 text-[8vw] md:text-[5.5vw] max-w-6xl text-[var(--rouge)] leading-[0.95]"
+          className="font-display font-bold tracking-tight mt-6 text-[8vw] md:text-[5.5vw] max-w-6xl text-[var(--rouge)] leading-[0.95]"
         >
           Ahora puede liderar <br />
           en inteligencia comercial.
@@ -878,13 +1181,13 @@ function SceneClose() {
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 1.4 }}
-          className="mt-16 max-w-xl text-[var(--ink)]/70 text-lg leading-relaxed"
+          className="mt-14 max-w-xl text-[var(--ink)]/70 text-lg leading-relaxed"
         >
           El mejor marketing no es el que llega a más personas. Es el que sabe
-          exactamente a quién llegar, cómo hacerlo y cuánto cuesta hacerlo.
+          exactamente a quién llegar, cómo y cuánto cuesta.
         </motion.p>
 
-        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between text-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
           <span>BRAFH · 2026</span>
           <span>FIN DE LA PROPUESTA</span>
         </div>
@@ -917,7 +1220,9 @@ function BrafhExperience() {
   useEffect(() => {
     const root = containerRef.current;
     if (!root) return;
-    const sections = Array.from(root.querySelectorAll<HTMLElement>("section[id^='scene-']"));
+    const sections = Array.from(
+      root.querySelectorAll<HTMLElement>("section[id^='scene-']"),
+    );
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
