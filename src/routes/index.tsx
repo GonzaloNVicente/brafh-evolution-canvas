@@ -1,909 +1,952 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useInView, AnimatePresence } from "motion/react";
-import { useRef, useEffect, useState, type ReactNode } from "react";
-import heroImg from "@/assets/hero-industrial.jpg";
-import architectureImg from "@/assets/architecture.jpg";
-import forgeImg from "@/assets/forge.jpg";
+import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+
+import heroImg from "@/assets/scene-hero.jpg";
+import precisionImg from "@/assets/scene-precision.jpg";
+import workshopImg from "@/assets/scene-workshop.jpg";
+import steelImg from "@/assets/scene-steel.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "BRAFH — De los datos a la ventaja competitiva" },
-      {
-        name: "description",
-        content:
-          "Una experiencia narrativa interactiva. Cómo BRAFH puede transformar datos dispersos en inteligencia comercial.",
-      },
-      { property: "og:title", content: "BRAFH — De los datos a la ventaja competitiva" },
-      {
-        property: "og:description",
-        content: "Roadmap en tres etapas: Visibilidad, Atribución, Inteligencia Comercial.",
-      },
-      { property: "og:type", content: "website" },
+      { title: "BRAFH · Inteligencia Comercial" },
+      { name: "description", content: "Una propuesta estratégica para transformar datos dispersos en inteligencia comercial." },
     ],
   }),
-  component: Index,
+  component: BrafhExperience,
 });
 
-/* ------------------------------------------------------------------ */
-/* Scene shell                                                         */
-/* ------------------------------------------------------------------ */
+/* ───────────────────── helpers ───────────────────── */
 
-const TOTAL_SCENES = 12;
-
-function Scene({
-  index,
-  bg = "bg-bone",
-  text = "text-ink",
-  children,
-}: {
-  index: number;
-  bg?: string;
-  text?: string;
-  children: (inView: boolean) => ReactNode;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { amount: 0.55, once: false });
-
-  return (
-    <section
-      ref={ref}
-      data-scene={index}
-      className={`relative h-screen w-full snap-start snap-always overflow-hidden ${bg} ${text}`}
-    >
-      <div className="absolute inset-0 flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-6 md:px-16">
-          {children(inView)}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Main                                                                */
-/* ------------------------------------------------------------------ */
-
-function Index() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onScroll = () => {
-      const i = Math.round(el.scrollTop / window.innerHeight);
-      setActive(i);
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const goTo = (i: number) => {
-    const el = containerRef.current;
-    if (!el) return;
-    el.scrollTo({ top: i * window.innerHeight, behavior: "smooth" });
-  };
-
-  return (
-    <main className="relative h-screen w-screen overflow-hidden bg-bone text-ink">
-      {/* Top chrome */}
-      <div className="pointer-events-none fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 mix-blend-difference">
-        <div className="text-mono text-[11px] tracking-[0.28em] uppercase text-bone">
-          BRAFH · Propuesta Estratégica
-        </div>
-        <div className="text-mono text-[11px] tracking-[0.28em] uppercase text-bone">
-          {String(active + 1).padStart(2, "0")} / {String(TOTAL_SCENES).padStart(2, "0")}
-        </div>
-      </div>
-
-      {/* Side scene indicator */}
-      <div className="pointer-events-auto fixed right-5 top-1/2 z-50 -translate-y-1/2 hidden md:flex flex-col gap-2">
-        {Array.from({ length: TOTAL_SCENES }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Escena ${i + 1}`}
-            className="group relative h-6 w-6 flex items-center justify-center"
-          >
-            <span
-              className={`block transition-all duration-500 ${
-                active === i
-                  ? "h-[2px] w-5 bg-rouge"
-                  : "h-[2px] w-2 bg-ink/30 group-hover:bg-ink/60"
-              }`}
-            />
-          </button>
-        ))}
-      </div>
-
-      {/* Bottom hint */}
-      <AnimatePresence>
-        {active === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 1.4, duration: 0.8 }}
-            className="pointer-events-none fixed bottom-8 left-1/2 z-50 -translate-x-1/2 text-mono text-[11px] tracking-[0.28em] uppercase text-bone mix-blend-difference"
-          >
-            <motion.span
-              animate={{ y: [0, 6, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="inline-block"
-            >
-              ↓ desplazar para avanzar
-            </motion.span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Scenes container */}
-      <div
-        ref={containerRef}
-        className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth"
-        style={{ scrollSnapType: "y mandatory" }}
-      >
-        <Scene1 />
-        <Scene2 />
-        <Scene3 />
-        <Scene4 />
-        <Scene5 />
-        <Scene6 />
-        <Scene7 />
-        <Scene8 />
-        <Scene9 />
-        <Scene10 />
-        <Scene11 />
-        <Scene12 />
-      </div>
-    </main>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Reusable motion primitives                                          */
-/* ------------------------------------------------------------------ */
+const EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
-} as const;
+  hidden: { opacity: 0, y: 28 },
+  show: (d = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 1.1, ease: EASE, delay: d },
+  }),
+};
 
-function Eyebrow({ children }: { children: ReactNode }) {
+function Eyebrow({ index, label }: { index: string; label: string }) {
   return (
-    <div className="text-mono text-[11px] tracking-[0.28em] uppercase text-rouge mb-6">
-      {children}
+    <div className="flex items-center gap-4 text-mono text-[11px] tracking-[0.28em] uppercase text-[var(--rouge)]">
+      <span>{index}</span>
+      <span className="h-px w-10 bg-current opacity-50" />
+      <span className="text-[var(--ink)]/60">{label}</span>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* SCENE 1 — Hero                                                      */
-/* ------------------------------------------------------------------ */
-
-function Scene1() {
+function Scene({
+  id,
+  bg = "bone",
+  children,
+}: {
+  id: string;
+  bg?: "bone" | "graphite" | "ink";
+  children: React.ReactNode;
+}) {
+  const bgMap = {
+    bone: "bg-[var(--bone)] text-[var(--ink)]",
+    graphite: "bg-[var(--graphite)] text-[var(--bone)]",
+    ink: "bg-[#1a1a1a] text-[var(--bone)]",
+  };
   return (
-    <Scene index={0} bg="bg-ink" text="text-bone">
-      {(inView) => (
-        <>
-          <motion.img
+    <section
+      id={id}
+      className={`relative h-screen w-full snap-start snap-always overflow-hidden ${bgMap[bg]}`}
+    >
+      {children}
+    </section>
+  );
+}
+
+/* ───────────────────── chrome ───────────────────── */
+
+function Chrome({ current, total }: { current: number; total: number }) {
+  return (
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="flex items-center justify-between px-10 py-6 mix-blend-difference text-[var(--bone)]">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 rounded-full bg-[var(--rouge)]" />
+            <span className="text-mono text-[11px] tracking-[0.3em]">BRAFH / 2026</span>
+          </div>
+          <span className="text-mono text-[11px] tracking-[0.3em] opacity-70">
+            PROPUESTA ESTRATÉGICA
+          </span>
+          <span className="text-mono text-[11px] tracking-[0.3em] tabular-nums">
+            {String(current + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          </span>
+        </div>
+      </header>
+
+      <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-2">
+        {Array.from({ length: total }).map((_, i) => (
+          <a
+            key={i}
+            href={`#scene-${i + 1}`}
+            className="group flex items-center gap-2"
+            aria-label={`Escena ${i + 1}`}
+          >
+            <span
+              className={`h-px transition-all duration-500 ${
+                i === current ? "w-8 bg-[var(--rouge)]" : "w-3 bg-current opacity-30"
+              }`}
+            />
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ───────────────────── scene 1: HERO ───────────────────── */
+
+function SceneHero() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.18]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  return (
+    <Scene id="scene-1" bg="ink">
+      <div ref={ref} className="absolute inset-0">
+        <motion.div style={{ scale, opacity }} className="absolute inset-0">
+          <img
             src={heroImg}
             alt="Cocina industrial BRAFH"
-            initial={{ scale: 1.08, opacity: 0 }}
-            animate={inView ? { scale: 1, opacity: 0.55 } : {}}
-            transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="h-full w-full object-cover opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/40 to-ink/80" />
-          <div className="relative z-10 max-w-6xl mx-auto w-full">
-            <motion.div
-              initial="hidden"
-              animate={inView ? "show" : "hidden"}
-              variants={fadeUp}
-            >
-              <Eyebrow>BRAFH · 2026</Eyebrow>
-            </motion.div>
-            <motion.h1
-              initial={{ opacity: 0, y: 40 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 1.2, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="text-display text-[clamp(2.8rem,8vw,8rem)] text-bone"
-            >
-              Los datos están ahí.
-              <br />
-              <span className="text-rouge italic">Falta implementarlos.</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 1, delay: 0.9 }}
-              className="mt-10 max-w-xl text-lg md:text-xl text-bone/70 font-light"
-            >
-              Una oportunidad para transformar información dispersa en
-              inteligencia comercial.
-            </motion.p>
-          </div>
-        </>
-      )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/80" />
+        </motion.div>
+      </div>
+
+      <div className="relative z-10 h-full flex flex-col justify-end px-10 pb-20 md:px-20 md:pb-28">
+        <motion.div initial="hidden" animate="show" variants={fadeUp} custom={0.2}>
+          <Eyebrow index="01" label="Apertura" />
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.4, ease: EASE, delay: 0.4 }}
+          className="text-display mt-8 text-[12vw] md:text-[8.5vw] leading-[0.9]"
+        >
+          Los datos están ahí.
+          <br />
+          <span className="text-[var(--rouge)]">Falta usarlos.</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: EASE, delay: 0.9 }}
+          className="mt-10 max-w-xl text-lg md:text-xl text-[var(--bone)]/70 leading-relaxed"
+        >
+          Una oportunidad para transformar información en inteligencia comercial.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1.6 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-mono text-[10px] tracking-[0.4em] text-[var(--bone)]/40"
+        >
+          <motion.span
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-block"
+          >
+            SCROLL
+          </motion.span>
+        </motion.div>
+      </div>
     </Scene>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* SCENE 2 — Platforms floating                                        */
-/* ------------------------------------------------------------------ */
+/* ───────────────────── scene 2: SISTEMA ACTUAL ───────────────────── */
 
 const PLATFORMS = [
-  { name: "Meta Ads", x: "12%", y: "22%", d: 0 },
-  { name: "Google Ads", x: "72%", y: "16%", d: 0.1 },
-  { name: "Shopify", x: "82%", y: "62%", d: 0.2 },
-  { name: "WhatsApp", x: "18%", y: "72%", d: 0.3 },
-  { name: "Analytics", x: "46%", y: "12%", d: 0.4 },
-  { name: "Odoo CRM", x: "52%", y: "78%", d: 0.5 },
+  { name: "Meta Ads", x: 12, y: 22 },
+  { name: "Google Ads", x: 78, y: 18 },
+  { name: "Instagram", x: 30, y: 70 },
+  { name: "Shopify", x: 65, y: 60 },
+  { name: "WhatsApp", x: 18, y: 50 },
+  { name: "Analytics", x: 85, y: 75 },
+  { name: "Odoo", x: 48, y: 38 },
 ];
 
-function Scene2() {
+function SceneSystem() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
   return (
-    <Scene index={1}>
-      {(inView) => (
-        <>
-          <div className="absolute inset-0">
-            {PLATFORMS.map((p) => (
+    <Scene id="scene-2" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+        <Eyebrow index="02" label="Sistema actual" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-2xl">
+          Información en todas partes.
+        </h2>
+
+        <div className="absolute inset-0 pointer-events-none">
+          {PLATFORMS.map((p, i) => (
+            <motion.div
+              key={p.name}
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={inView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 + i * 0.12, ease: EASE }}
+              className="absolute"
+              style={{ left: `${p.x}%`, top: `${p.y}%` }}
+            >
               <motion.div
-                key={p.name}
-                className="absolute"
-                style={{ left: p.x, top: p.y }}
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={
-                  inView
-                    ? {
-                        opacity: 1,
-                        scale: 1,
-                        y: [0, -8, 0],
-                      }
-                    : { opacity: 0 }
-                }
-                transition={{
-                  opacity: { duration: 0.8, delay: p.d },
-                  scale: { duration: 0.8, delay: p.d },
-                  y: { duration: 4 + p.d * 2, repeat: Infinity, ease: "easeInOut" },
-                }}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 4 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
+                className="relative"
               >
-                <div className="border border-ink/20 bg-bone px-5 py-3 text-mono text-xs tracking-[0.18em] uppercase text-ink shadow-[0_20px_40px_-20px_rgba(0,0,0,0.2)]">
+                <div className="px-4 py-2 border border-[var(--ink)]/15 bg-[var(--bone)] text-mono text-[11px] tracking-[0.2em] uppercase shadow-[0_8px_30px_-12px_rgba(0,0,0,0.15)]">
                   {p.name}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="relative z-10 text-center max-w-4xl">
-            <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-              <Eyebrow>Escena 02 · Diagnóstico</Eyebrow>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="text-display text-[clamp(2.2rem,6vw,5.5rem)]"
-            >
-              Información
-              <br />
-              <span className="italic text-rouge">en todas partes.</span>
-            </motion.h2>
-          </div>
-        </>
-      )}
-    </Scene>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 3 — Data fragmenting                                          */
-/* ------------------------------------------------------------------ */
-
-const FRAGMENTS = [
-  "Consulta web",
-  "WhatsApp",
-  "Lead",
-  "Visita",
-  "Campaña",
-  "Click",
-  "Mensaje",
-  "Sesión",
-  "Pedido",
-  "Quote",
-  "Form",
-  "Llamada",
-];
-
-function Scene3() {
-  return (
-    <Scene index={2}>
-      {(inView) => (
-        <>
-          <div className="absolute inset-0 overflow-hidden">
-            {FRAGMENTS.map((f, i) => {
-              const startX = 50;
-              const startY = 50;
-              const angle = (i / FRAGMENTS.length) * Math.PI * 2;
-              const tx = Math.cos(angle) * 45;
-              const ty = Math.sin(angle) * 38;
-              return (
-                <motion.div
-                  key={f}
-                  className="absolute text-mono text-[10px] tracking-[0.22em] uppercase"
-                  style={{ left: `${startX}%`, top: `${startY}%` }}
-                  initial={{ opacity: 0, x: 0, y: 0 }}
-                  animate={
-                    inView
-                      ? {
-                          opacity: [0, 1, 1, 0.25],
-                          x: [`0%`, `${tx}vw`],
-                          y: [`0%`, `${ty}vh`],
-                        }
-                      : { opacity: 0 }
-                  }
-                  transition={{
-                    duration: 3.5,
-                    delay: 0.1 * i,
-                    repeat: Infinity,
-                    repeatDelay: 1.5,
-                    ease: "easeOut",
-                  }}
-                >
-                  <span className="border border-ink/20 bg-bone px-3 py-1.5 text-ink/70">
-                    {f}
-                  </span>
-                </motion.div>
-              );
-            })}
-          </div>
-          <div className="relative z-10 text-center max-w-3xl">
-            <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-              <Eyebrow>Escena 03 · Fragmentación</Eyebrow>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="text-display text-[clamp(2rem,5.5vw,5rem)]"
-            >
-              Los datos existen.
-              <br />
-              <span className="italic text-rouge">La visibilidad no.</span>
-            </motion.h2>
-          </div>
-        </>
-      )}
-    </Scene>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 4 — Consequences (dark)                                       */
-/* ------------------------------------------------------------------ */
-
-const CONSEQUENCES = [
-  "No sabemos qué campaña genera más oportunidades.",
-  "No conocemos el costo real de cada lead.",
-  "No podemos identificar el canal más rentable.",
-  "Las oportunidades se gestionan fuera del CRM.",
-  "Las decisiones dependen de intuición, no de evidencia.",
-];
-
-function Scene4() {
-  return (
-    <Scene index={3} bg="bg-graphite" text="text-bone">
-      {(inView) => (
-        <div className="relative z-10 max-w-5xl w-full">
-          <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-            <Eyebrow>Escena 04 · Consecuencias</Eyebrow>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
-            className="text-display text-[clamp(1.6rem,3.2vw,2.6rem)] text-bone/70 mb-12 max-w-2xl"
-          >
-            Lo que cuesta operar sin un sistema conectado.
-          </motion.h2>
-          <ul className="space-y-5">
-            {CONSEQUENCES.map((c, i) => (
-              <motion.li
-                key={i}
-                initial={{ opacity: 0, x: -20 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.7, delay: 0.3 + i * 0.18 }}
-                className="flex items-start gap-5 border-b border-bone/10 pb-5"
-              >
-                <span className="text-mono text-xs text-rouge pt-2">
-                  0{i + 1}
-                </span>
-                <span className="text-[clamp(1.1rem,2vw,1.6rem)] font-light text-bone leading-snug">
-                  {c}
-                </span>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </Scene>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 5 — The statement                                             */
-/* ------------------------------------------------------------------ */
-
-function Scene5() {
-  return (
-    <Scene index={4}>
-      {(inView) => (
-        <div className="relative z-10 max-w-6xl w-full">
-          <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-            <Eyebrow>Escena 05 · Diagnóstico</Eyebrow>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 1 } : {}}
-            transition={{ duration: 1.2 }}
-            className="text-display text-[clamp(2.4rem,7vw,7rem)] leading-[0.95]"
-          >
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.9, delay: 0.2 }}
-              className="block"
-            >
-              El problema no es la
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.9, delay: 0.5 }}
-              className="block"
-            >
-              falta de datos.
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.9, delay: 1.0 }}
-              className="block italic text-rouge mt-4"
-            >
-              El problema es que no están conectados.
-            </motion.span>
-          </motion.h2>
-        </div>
-      )}
-    </Scene>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 6 — Connection diagram                                        */
-/* ------------------------------------------------------------------ */
-
-function Scene6() {
-  const sources = ["Meta Ads", "Google Ads", "Shopify", "WhatsApp", "Analytics"];
-  return (
-    <Scene index={5} bg="bg-ink" text="text-bone">
-      {(inView) => (
-        <div className="relative z-10 w-full max-w-6xl">
-          <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-            <Eyebrow>Escena 06 · Conexión</Eyebrow>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.9 }}
-            className="text-display text-[clamp(1.8rem,4vw,3.4rem)] mb-12 text-bone max-w-2xl"
-          >
-            Todo conectado a una única fuente de verdad.
-          </motion.h2>
-
-          <div className="grid grid-cols-12 gap-6 items-center">
-            <div className="col-span-4 space-y-3">
-              {sources.map((s, i) => (
-                <motion.div
-                  key={s}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.6, delay: 0.2 + i * 0.1 }}
-                  className="border border-bone/20 px-4 py-3 text-mono text-xs tracking-[0.18em] uppercase text-bone/80"
-                >
-                  {s}
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="col-span-4 relative h-64">
-              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full">
-                {[20, 60, 100, 140, 180].map((y, i) => (
-                  <motion.path
-                    key={i}
-                    d={`M0 ${y} Q 100 ${y}, 200 100`}
-                    fill="none"
-                    stroke="#8B1620"
-                    strokeWidth="1"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={inView ? { pathLength: 1, opacity: 0.8 } : {}}
-                    transition={{ duration: 1.5, delay: 0.7 + i * 0.15 }}
+                {/* dispersing particles */}
+                {Array.from({ length: 6 }).map((_, j) => (
+                  <motion.div
+                    key={j}
+                    className="absolute top-1/2 left-1/2 h-1 w-1 rounded-full bg-[var(--rouge)]"
+                    animate={
+                      inView
+                        ? {
+                            x: [0, (Math.random() - 0.5) * 120],
+                            y: [0, (Math.random() - 0.5) * 120],
+                            opacity: [0.8, 0],
+                          }
+                        : {}
+                    }
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      delay: j * 0.4 + i * 0.2,
+                      ease: "easeOut",
+                    }}
                   />
                 ))}
-                <motion.path
-                  d="M200 100 L 400 100"
-                  fill="none"
-                  stroke="#F6F4EF"
-                  strokeWidth="1.2"
-                  initial={{ pathLength: 0 }}
-                  animate={inView ? { pathLength: 1 } : {}}
-                  transition={{ duration: 0.8, delay: 1.8 }}
+              </motion.div>
+            </motion.div>
+          ))}
+        </div>
+
+        <p className="absolute bottom-20 left-10 md:left-20 max-w-md text-[var(--ink)]/60 text-base">
+          Siete plataformas. Ninguna se habla. Cada dato se evapora antes de
+          convertirse en decisión.
+        </p>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 3: PUNTOS DE FUGA ───────────────────── */
+
+function SceneLeaks() {
+  const leaks = [
+    { label: "Lead perdido", x: 18, y: 30 },
+    { label: "Origen desconocido", x: 62, y: 25 },
+    { label: "ROI desconocido", x: 30, y: 60 },
+    { label: "Seguimiento inconsistente", x: 70, y: 70 },
+  ];
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
+  return (
+    <Scene id="scene-3" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+        <Eyebrow index="03" label="Puntos de fuga" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
+          Lo que <span className="text-[var(--rouge)]">no se mide</span>, se
+          escapa.
+        </h2>
+
+        <div className="absolute inset-0 pointer-events-none">
+          {leaks.map((leak, i) => (
+            <motion.div
+              key={leak.label}
+              initial={{ opacity: 0 }}
+              animate={inView ? { opacity: [0, 1, 1, 0.15] } : {}}
+              transition={{
+                duration: 4,
+                delay: 0.4 + i * 0.5,
+                repeat: Infinity,
+                repeatDelay: 2,
+                times: [0, 0.2, 0.7, 1],
+                ease: EASE,
+              }}
+              className="absolute"
+              style={{ left: `${leak.x}%`, top: `${leak.y}%` }}
+            >
+              <div className="relative">
+                <div className="absolute -inset-3 rounded-full border border-[var(--rouge)]/30" />
+                <div className="px-3 py-1.5 bg-[var(--rouge)] text-[var(--bone)] text-mono text-[10px] tracking-[0.22em] uppercase">
+                  {leak.label}
+                </div>
+                <motion.div
+                  className="absolute left-1/2 top-full mt-2 h-px w-px bg-[var(--rouge)]"
+                  animate={inView ? { height: [0, 80, 80], opacity: [1, 1, 0] } : {}}
+                  transition={{
+                    duration: 4,
+                    delay: 0.4 + i * 0.5,
+                    repeat: Infinity,
+                    repeatDelay: 2,
+                  }}
                 />
-              </svg>
-            </div>
-
-            <div className="col-span-4 space-y-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.7, delay: 1.5 }}
-                className="border border-rouge bg-rouge/10 px-5 py-4"
-              >
-                <div className="text-mono text-[10px] tracking-[0.22em] uppercase text-rouge mb-1">
-                  Hub
-                </div>
-                <div className="text-bone text-lg">Odoo CRM</div>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.7, delay: 2.1 }}
-                className="border border-bone/40 px-5 py-4"
-              >
-                <div className="text-mono text-[10px] tracking-[0.22em] uppercase text-bone/60 mb-1">
-                  Output
-                </div>
-                <div className="text-bone text-lg">Dashboard Ejecutivo</div>
-              </motion.div>
-            </div>
-          </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-      )}
+
+        <div className="absolute bottom-20 left-10 md:left-20 right-10 md:right-20 flex flex-wrap items-end justify-between gap-6">
+          <p className="max-w-md text-[var(--ink)]/60 text-base">
+            Cada gota es una venta posible, un cliente que vuelve, una decisión
+            informada — perdida en el silencio entre sistemas.
+          </p>
+          <div className="text-mono text-xs text-[var(--ink)]/40">FIG. 03 · LEAKAGE MAP</div>
+        </div>
+      </div>
     </Scene>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* SCENES 7–9 — Roadmap                                                */
-/* ------------------------------------------------------------------ */
+/* ───────────────────── scene 4: MOMENTO CLAVE ───────────────────── */
 
-function StageScene({
-  index,
-  num,
-  months,
-  title,
-  bullets,
-  goal,
-}: {
-  index: number;
-  num: string;
-  months: string;
-  title: string;
-  bullets: string[];
-  goal: string;
-}) {
+function SceneKeyMoment() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.5 });
+
   return (
-    <Scene index={index}>
-      {(inView) => (
-        <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-          <div className="md:col-span-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="text-mono text-[11px] tracking-[0.28em] uppercase text-rouge mb-4">
-                Roadmap · Etapa {num}
-              </div>
-              <div className="text-mono text-xs text-ink/50 mb-6">{months}</div>
+    <Scene id="scene-4" bg="graphite">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1 }}
+        >
+          <Eyebrow index="04" label="Diagnóstico" />
+        </motion.div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1.4, ease: EASE, delay: 0.2 }}
+          className="text-display mt-10 text-[8vw] md:text-[6vw] max-w-6xl"
+        >
+          El problema no es la <br />
+          <span className="text-[var(--bone)]/30">falta de datos.</span>
+        </motion.h2>
+
+        <motion.h3
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1.4, ease: EASE, delay: 0.8 }}
+          className="text-display mt-6 text-[8vw] md:text-[6vw] max-w-6xl"
+        >
+          El problema es que <br />
+          <span className="text-[var(--rouge)]">no están conectados.</span>
+        </motion.h3>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 5: TRANSFORMACIÓN ───────────────────── */
+
+function SceneTransformation() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
+  const nodes = [
+    { name: "Meta Ads", x: 10 },
+    { name: "Shopify", x: 32 },
+    { name: "WhatsApp", x: 54 },
+    { name: "Odoo CRM", x: 76, primary: true },
+    { name: "Dashboard", x: 92 },
+  ];
+
+  return (
+    <Scene id="scene-5" bg="graphite">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+        <Eyebrow index="05" label="Arquitectura" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
+          Una sola corriente de información.
+        </h2>
+
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-10 md:px-20">
+          <svg viewBox="0 0 1000 200" className="w-full h-40">
+            <motion.path
+              d="M 80 100 C 200 100, 280 100, 400 100 S 600 100, 760 100 S 900 100, 940 100"
+              fill="none"
+              stroke="var(--rouge)"
+              strokeWidth="1.5"
+              initial={{ pathLength: 0 }}
+              animate={inView ? { pathLength: 1 } : {}}
+              transition={{ duration: 2.2, ease: EASE, delay: 0.4 }}
+            />
+          </svg>
+
+          <div className="absolute inset-0 flex items-center justify-between">
+            {nodes.map((n, i) => (
               <motion.div
-                initial={{ scaleX: 0 }}
-                animate={inView ? { scaleX: 1 } : {}}
-                transition={{ duration: 1.2, delay: 0.2 }}
-                className="h-px bg-rouge origin-left mb-6"
-              />
-              <div className="text-[8rem] leading-none text-display text-ink/10 select-none">
-                {num}
-              </div>
-            </motion.div>
-          </div>
-          <div className="md:col-span-8">
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.9, delay: 0.2 }}
-              className="text-display text-[clamp(2.4rem,6vw,5.5rem)] mb-10"
-            >
-              {title}
-            </motion.h2>
-            <ul className="space-y-4 mb-10">
-              {bullets.map((b, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={inView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.6, delay: 0.6 + i * 0.15 }}
-                  className="flex items-start gap-4 border-b border-ink/10 pb-4"
+                key={n.name}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.6, delay: 0.6 + i * 0.3, ease: EASE }}
+                className="flex flex-col items-center gap-3"
+                style={{ width: "20%" }}
+              >
+                <div
+                  className={`relative h-14 w-14 rounded-full flex items-center justify-center ${
+                    n.primary
+                      ? "bg-[var(--rouge)]"
+                      : "bg-[var(--bone)]/5 border border-[var(--bone)]/20"
+                  }`}
                 >
-                  <span className="text-mono text-[10px] text-rouge pt-1.5">
-                    0{i + 1}
-                  </span>
-                  <span className="text-lg md:text-xl font-light text-ink leading-snug">
-                    {b}
-                  </span>
-                </motion.li>
-              ))}
-            </ul>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 1.4 }}
-              className="border-l-2 border-rouge pl-5"
-            >
-              <div className="text-mono text-[10px] tracking-[0.22em] uppercase text-rouge mb-1">
-                Objetivo
-              </div>
-              <div className="text-ink text-lg italic">{goal}</div>
-            </motion.div>
+                  <motion.div
+                    className="absolute inset-0 rounded-full border border-[var(--rouge)]/40"
+                    animate={inView ? { scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] } : {}}
+                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.3 }}
+                  />
+                  <div className={`h-2 w-2 rounded-full ${n.primary ? "bg-[var(--bone)]" : "bg-[var(--rouge)]"}`} />
+                </div>
+                <span className="text-mono text-[10px] tracking-[0.22em] uppercase text-[var(--bone)]/70">
+                  {n.name}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </div>
-      )}
+
+        <p className="absolute bottom-20 left-10 md:left-20 max-w-md text-[var(--bone)]/50 text-base">
+          Cada plataforma deja de ser una isla. Empieza a alimentar un solo
+          cerebro operativo.
+        </p>
+      </div>
     </Scene>
   );
 }
 
-function Scene7() {
+/* ───────────────────── scene 6: ROADMAP ───────────────────── */
+
+function SceneRoadmap() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.3 });
+
+  const stages = [
+    {
+      n: "01",
+      t: "Visibilidad",
+      m: "Mes 01 — 03",
+      d: "Conectar fuentes. Capturar cada lead. Asignar responsables.",
+    },
+    {
+      n: "02",
+      t: "Atribución",
+      m: "Mes 04 — 06",
+      d: "Saber de dónde viene cada venta. Calcular costo real por canal.",
+    },
+    {
+      n: "03",
+      t: "Inteligencia Comercial",
+      m: "Mes 07 — 09",
+      d: "Decisiones predictivas. Pronósticos. Optimización continua.",
+    },
+  ];
+
   return (
-    <StageScene
-      index={6}
-      num="01"
-      months="Mes 01 — 02"
-      title="Visibilidad"
-      bullets={[
-        "Integrar WhatsApp con Odoo CRM.",
-        "Registrar origen, estado y responsable de cada lead.",
-        "Exigir reportes mensuales de campañas.",
-      ]}
-      goal="Ninguna oportunidad queda invisible."
-    />
-  );
-}
+    <Scene id="scene-6" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24 flex flex-col">
+        <Eyebrow index="06" label="Roadmap general" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
+          Tres etapas. Una sola dirección.
+        </h2>
 
-function Scene8() {
-  return (
-    <StageScene
-      index={7}
-      num="02"
-      months="Mes 02 — 03"
-      title="Atribución"
-      bullets={[
-        "Agregar ‘¿Cómo nos conociste?’ en Shopify.",
-        "Construir buyer personas reales.",
-        "Diferenciar distribuidores, catering e interioristas.",
-      ]}
-      goal="Comprender qué canal genera mejores resultados."
-    />
-  );
-}
-
-function Scene9() {
-  return (
-    <StageScene
-      index={8}
-      num="03"
-      months="Mes 03 — 05"
-      title="Inteligencia Comercial"
-      bullets={[
-        "Dashboard Power BI consolidado.",
-        "Leads por canal, costo por lead, conversión.",
-        "Tendencias de búsqueda y tiempo de respuesta.",
-      ]}
-      goal="Tomar decisiones basadas en evidencia."
-    />
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 10 — Future state funnel                                      */
-/* ------------------------------------------------------------------ */
-
-const FUNNEL = ["Ads", "Web", "Lead", "CRM", "Venta"];
-
-function Scene10() {
-  return (
-    <Scene index={9} bg="bg-ink" text="text-bone">
-      {(inView) => (
-        <>
-          <motion.img
-            src={architectureImg}
-            alt=""
-            initial={{ opacity: 0 }}
-            animate={inView ? { opacity: 0.18 } : {}}
-            transition={{ duration: 1.6 }}
-            className="absolute inset-0 w-full h-full object-cover"
+        <div className="relative mt-auto pt-20">
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={inView ? { scaleX: 1 } : {}}
+            transition={{ duration: 2, ease: EASE, delay: 0.3 }}
+            style={{ transformOrigin: "left" }}
+            className="absolute top-[140px] left-0 right-0 h-px bg-[var(--ink)]/20"
           />
-          <div className="relative z-10 w-full max-w-6xl">
-            <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-              <Eyebrow>Escena 10 · Estado futuro</Eyebrow>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.9 }}
-              className="text-display text-[clamp(2rem,4.5vw,3.6rem)] text-bone mb-16 max-w-3xl"
-            >
-              Por primera vez BRAFH podrá visualizar
-              <br />
-              su funnel comercial <span className="italic text-rouge">completo</span>.
-            </motion.h2>
-
-            <div className="flex flex-wrap items-center gap-3 md:gap-5">
-              {FUNNEL.map((step, i) => (
-                <div key={step} className="flex items-center gap-3 md:gap-5">
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={inView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.6, delay: 0.3 + i * 0.2 }}
-                    className="border border-bone/30 px-5 py-3 text-mono text-xs tracking-[0.22em] uppercase text-bone"
-                  >
-                    {step}
-                  </motion.div>
-                  {i < FUNNEL.length - 1 && (
-                    <motion.span
-                      initial={{ opacity: 0, scaleX: 0 }}
-                      animate={inView ? { opacity: 1, scaleX: 1 } : {}}
-                      transition={{ duration: 0.5, delay: 0.5 + i * 0.2 }}
-                      className="h-px w-8 md:w-12 bg-rouge origin-left"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 1, delay: 1.6 }}
-              className="mt-10 text-bone/60 text-sm max-w-xl"
-            >
-              Todas las métricas visibles. Todo el recorrido trazable.
-            </motion.p>
-          </div>
-        </>
-      )}
-    </Scene>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* SCENE 11 — Innovation                                               */
-/* ------------------------------------------------------------------ */
-
-function Scene11() {
-  return (
-    <Scene index={10}>
-      {(inView) => (
-        <div className="relative z-10 w-full max-w-6xl">
-          <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-            <Eyebrow>Escena 11 · Innovación</Eyebrow>
-          </motion.div>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.9 }}
-            className="text-display text-[clamp(2rem,5vw,4rem)] mb-14"
-          >
-            Más allá del dato:
-            <br />
-            <span className="italic text-rouge">narrativa de marca.</span>
-          </motion.h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                tag: "Sound Branding",
-                title: "Identidad sonora",
-                body: "Una firma auditiva propia para videos, presentaciones y experiencias de marca.",
-              },
-              {
-                tag: "Leonardo AI",
-                title: "Visualización hiperrealista",
-                body: "Proyectos gastronómicos generados con equipamiento BRAFH, antes de instalarse.",
-              },
-            ].map((b, i) => (
+          <div className="grid grid-cols-3 gap-8">
+            {stages.map((s, i) => (
               <motion.div
-                key={b.tag}
+                key={s.n}
                 initial={{ opacity: 0, y: 30 }}
                 animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.8, delay: 0.3 + i * 0.2 }}
-                className="border border-ink/15 p-8 group hover:border-rouge transition-colors duration-500"
+                transition={{ duration: 1, ease: EASE, delay: 0.5 + i * 0.3 }}
+                className="relative"
               >
-                <div className="text-mono text-[10px] tracking-[0.22em] uppercase text-rouge mb-6">
-                  {b.tag}
+                <div className="text-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
+                  ETAPA {s.n}
                 </div>
-                <div className="text-display text-3xl mb-4">{b.title}</div>
-                <div className="text-ink/70 font-light leading-relaxed">{b.body}</div>
+                <h3 className="text-display mt-3 text-4xl md:text-5xl">{s.t}</h3>
+                <div className="relative my-12">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={inView ? { scale: 1 } : {}}
+                    transition={{ duration: 0.6, delay: 1 + i * 0.3, ease: EASE }}
+                    className="h-3 w-3 rounded-full bg-[var(--rouge)]"
+                  />
+                </div>
+                <div className="text-mono text-xs text-[var(--ink)]/50 tracking-[0.2em]">
+                  {s.m}
+                </div>
+                <p className="mt-4 text-[var(--ink)]/70 text-base leading-relaxed max-w-xs">
+                  {s.d}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 7: ETAPA 1 VISIBILIDAD ───────────────────── */
+
+function SceneVisibilidad() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
+  return (
+    <Scene id="scene-7" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="grid h-full grid-cols-1 md:grid-cols-2">
+        <div className="relative flex flex-col justify-center px-10 py-20 md:px-20">
+          <Eyebrow index="07" label="Etapa 01 / Visibilidad" />
+          <h2 className="text-display mt-6 text-5xl md:text-6xl">
+            Ningún lead vuelve a perderse.
+          </h2>
+          <p className="mt-8 max-w-md text-[var(--ink)]/70 text-base leading-relaxed">
+            WhatsApp Business API conectado a Odoo CRM. Cada conversación entra
+            con origen, estado y responsable — automáticamente.
+          </p>
+
+          <div className="mt-10 flex items-center gap-4 text-mono text-[10px] tracking-[0.25em] uppercase">
+            <span className="text-[var(--ink)]/40">Origen</span>
+            <span className="text-[var(--ink)]/20">·</span>
+            <span className="text-[var(--ink)]/40">Estado</span>
+            <span className="text-[var(--ink)]/20">·</span>
+            <span className="text-[var(--ink)]/40">Responsable</span>
+          </div>
+        </div>
+
+        <div className="relative bg-[var(--ash)]/40 flex items-center justify-center p-10">
+          {/* Before / After */}
+          <div className="relative w-full max-w-md">
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={inView ? { opacity: [1, 1, 0] } : {}}
+              transition={{ duration: 3, delay: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              className="absolute inset-0 border border-[var(--ink)]/15 bg-[var(--bone)] p-6"
+            >
+              <div className="text-mono text-[10px] tracking-[0.25em] text-[var(--ink)]/40">
+                ANTES
+              </div>
+              {["Mensaje sin registro", "Sin responsable", "Sin origen"].map((t) => (
+                <div key={t} className="mt-4 flex items-center gap-3">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)]" />
+                  <span className="text-[var(--ink)]/50 line-through">{t}</span>
+                </div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={inView ? { opacity: [0, 0, 1, 1] } : {}}
+              transition={{ duration: 3, delay: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              className="relative border border-[var(--ink)]/15 bg-[var(--bone)] p-6 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.25)]"
+            >
+              <div className="flex items-center justify-between text-mono text-[10px] tracking-[0.25em]">
+                <span className="text-[var(--rouge)]">DESPUÉS</span>
+                <span className="text-[var(--ink)]/40">ODOO · CRM</span>
+              </div>
+              <div className="mt-6 space-y-4">
+                {[
+                  ["Origen", "WhatsApp / Meta Ads"],
+                  ["Estado", "Cualificado"],
+                  ["Responsable", "Equipo Comercial"],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between border-b border-[var(--ink)]/10 pb-3">
+                    <span className="text-mono text-[10px] tracking-[0.22em] uppercase text-[var(--ink)]/50">
+                      {k}
+                    </span>
+                    <span className="text-sm">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 8: ETAPA 2 ATRIBUCIÓN ───────────────────── */
+
+function SceneAtribucion() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+  const channels = ["Meta Ads", "Google Ads", "Instagram", "Referidos"];
+
+  return (
+    <Scene id="scene-8" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+        <Eyebrow index="08" label="Etapa 02 / Atribución" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
+          ¿Cómo nos conociste?
+        </h2>
+        <p className="mt-6 max-w-xl text-[var(--ink)]/70">
+          Una pregunta. Cuatro canales. Trazabilidad completa.
+        </p>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-10 items-center">
+          <div className="space-y-3">
+            {channels.map((c, i) => (
+              <motion.div
+                key={c}
+                initial={{ opacity: 0, x: -20 }}
+                animate={inView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.7, delay: 0.4 + i * 0.15, ease: EASE }}
+                className="flex items-center justify-between border-b border-[var(--ink)]/15 pb-3"
+              >
+                <span className="text-lg">{c}</span>
+                <span className="text-mono text-[10px] tracking-[0.25em] text-[var(--ink)]/40">
+                  CH/0{i + 1}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="hidden md:flex flex-col items-center">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+              <motion.path
+                d="M 10 60 C 50 60, 70 60, 110 60"
+                stroke="var(--rouge)"
+                strokeWidth="1.5"
+                fill="none"
+                initial={{ pathLength: 0 }}
+                animate={inView ? { pathLength: 1 } : {}}
+                transition={{ duration: 1.2, delay: 1, ease: EASE }}
+              />
+              <motion.circle
+                cx="110"
+                cy="60"
+                r="4"
+                fill="var(--rouge)"
+                initial={{ scale: 0 }}
+                animate={inView ? { scale: 1 } : {}}
+                transition={{ delay: 2.2 }}
+              />
+            </svg>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={inView ? { opacity: 1, scale: 1 } : {}}
+            transition={{ duration: 1, delay: 1.4, ease: EASE }}
+            className="border border-[var(--ink)]/15 bg-[var(--bone)] p-8 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.2)]"
+          >
+            <div className="text-mono text-[10px] tracking-[0.25em] text-[var(--rouge)]">
+              ATRIBUCIÓN COMPLETA
+            </div>
+            <div className="mt-6 space-y-3 text-sm">
+              <div className="flex justify-between"><span>Canal</span><span className="text-[var(--ink)]/60">Meta Ads</span></div>
+              <div className="flex justify-between"><span>Costo por lead</span><span className="text-[var(--ink)]/60">$ 18.40</span></div>
+              <div className="flex justify-between"><span>Tasa de cierre</span><span className="text-[var(--ink)]/60">14.2%</span></div>
+              <div className="flex justify-between font-medium border-t border-[var(--ink)]/15 pt-3 mt-3">
+                <span>ROI</span><span className="text-[var(--rouge)]">4.7×</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 9: INTELIGENCIA COMERCIAL ───────────────────── */
+
+function SceneInteligencia() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.3 });
+
+  const kpis = [
+    { label: "Leads / canal", value: "1,284", delta: "+ 23%" },
+    { label: "Costo por lead", value: "$ 16.20", delta: "− 12%" },
+    { label: "Conversión", value: "11.8%", delta: "+ 4.1 pts" },
+    { label: "Tiempo respuesta", value: "3m 12s", delta: "− 68%" },
+    { label: "Tendencia mensual", value: "↑ 18%", delta: "vs Q anterior" },
+    { label: "ROI consolidado", value: "5.1×", delta: "Odoo · live" },
+  ];
+
+  return (
+    <Scene id="scene-9" bg="graphite">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full px-10 py-20 md:px-20 md:py-24">
+        <Eyebrow index="09" label="Etapa 03 / Inteligencia comercial" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl text-[var(--bone)]">
+          El cuadro de mando que faltaba.
+        </h2>
+
+        <div className="mt-14 grid grid-cols-2 md:grid-cols-3 gap-px bg-[var(--bone)]/10">
+          {kpis.map((k, i) => (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.3 + i * 0.1, ease: EASE }}
+              className="bg-[var(--graphite)] p-8 min-h-[170px] flex flex-col justify-between"
+            >
+              <div className="text-mono text-[10px] tracking-[0.25em] uppercase text-[var(--bone)]/50">
+                {k.label}
+              </div>
+              <div>
+                <div className="text-display text-4xl md:text-5xl text-[var(--bone)]">
+                  {k.value}
+                </div>
+                <div className="mt-2 text-mono text-[11px] text-[var(--rouge)]">
+                  {k.delta}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="absolute bottom-10 right-10 md:right-20 text-mono text-[10px] tracking-[0.3em] text-[var(--bone)]/40">
+          ODOO · LIVE FEED
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── scene 10: ESTADO FUTURO ───────────────────── */
+
+function SceneFuture() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+  const steps = ["Ads", "Web", "Lead", "CRM", "Venta"];
+
+  return (
+    <Scene id="scene-10" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
+        <Eyebrow index="10" label="Estado futuro" />
+        <h2 className="text-display mt-6 text-5xl md:text-6xl max-w-3xl">
+          Por primera vez, una <br />
+          <span className="text-[var(--rouge)]">visión completa del funnel.</span>
+        </h2>
+
+        <div className="mt-20 flex items-center justify-between gap-4">
+          {steps.map((s, i) => (
+            <div key={s} className="flex items-center gap-4 flex-1 last:flex-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={inView ? { opacity: 1, scale: 1 } : {}}
+                transition={{ duration: 0.6, delay: 0.4 + i * 0.2, ease: EASE }}
+                className="flex flex-col items-center gap-3"
+              >
+                <div className="relative h-16 w-16 rounded-full border border-[var(--ink)]/20 flex items-center justify-center bg-[var(--bone)]">
+                  <span className="text-mono text-[11px] tracking-[0.2em] text-[var(--rouge)]">
+                    0{i + 1}
+                  </span>
+                </div>
+                <span className="text-mono text-[11px] tracking-[0.25em] uppercase">
+                  {s}
+                </span>
+              </motion.div>
+              {i < steps.length - 1 && (
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={inView ? { scaleX: 1 } : {}}
-                  transition={{ duration: 1, delay: 0.8 + i * 0.2 }}
-                  className="h-px bg-rouge mt-8 origin-left"
+                  transition={{ duration: 0.6, delay: 0.6 + i * 0.2, ease: EASE }}
+                  style={{ transformOrigin: "left" }}
+                  className="h-px flex-1 bg-[var(--rouge)]"
                 />
-              </motion.div>
-            ))}
-          </div>
+              )}
+            </div>
+          ))}
         </div>
-      )}
+
+        <p className="mt-20 max-w-xl text-[var(--ink)]/60">
+          Sin pérdidas. Sin puntos ciegos. Cada peso invertido tiene un nombre,
+          un origen y un resultado.
+        </p>
+      </div>
     </Scene>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* SCENE 12 — Closing                                                  */
-/* ------------------------------------------------------------------ */
+/* ───────────────────── scene 11: INNOVACIÓN ───────────────────── */
 
-function Scene12() {
+function SceneInnovacion() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.3 });
+
   return (
-    <Scene index={11} bg="bg-ink" text="text-bone">
-      {(inView) => (
-        <>
-          <motion.img
-            src={forgeImg}
-            alt=""
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={inView ? { opacity: 0.25, scale: 1 } : {}}
-            transition={{ duration: 2 }}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/40" />
-          <div className="relative z-10 w-full max-w-6xl text-center">
-            <motion.div initial="hidden" animate={inView ? "show" : "hidden"} variants={fadeUp}>
-              <Eyebrow>Cierre</Eyebrow>
-            </motion.div>
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 1.1, delay: 0.2 }}
-              className="text-display text-[clamp(2.4rem,7.5vw,7.5rem)] text-bone leading-[0.95]"
-            >
-              BRAFH ya genera datos.
-              <br />
-              <span className="italic text-rouge">
-                Ahora puede generar ventaja competitiva.
-              </span>
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 1, delay: 1.2 }}
-              className="mt-12 max-w-2xl mx-auto text-bone/70 text-lg font-light"
-            >
-              El mejor marketing no es el que llega a más personas.
-              Es el que sabe exactamente a quién llegar, cómo hacerlo y cuánto
-              cuesta hacerlo.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 1.8 }}
-              className="mt-16 text-mono text-[11px] tracking-[0.32em] uppercase text-bone/50"
-            >
-              BRAFH · Propuesta Estratégica · 2026
-            </motion.div>
-          </div>
-        </>
-      )}
+    <Scene id="scene-11" bg="ink">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="grid h-full grid-cols-1 md:grid-cols-2">
+        {[
+          {
+            n: "11 / A",
+            t: "Sound Branding",
+            d: "Una firma sonora propia. Reels, llamadas, showroom. BRAFH no se ve — se reconoce.",
+            img: precisionImg,
+          },
+          {
+            n: "11 / B",
+            t: "Leonardo AI",
+            d: "Renders fotorrealistas de equipamiento en segundos. Propuestas comerciales con imagen propia.",
+            img: steelImg,
+          },
+        ].map((p, i) => (
+          <motion.div
+            key={p.t}
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.3 + i * 0.2, ease: EASE }}
+            className="relative overflow-hidden flex flex-col justify-end p-10 md:p-16 border-r border-[var(--bone)]/10 last:border-r-0"
+          >
+            <img
+              src={p.img}
+              alt=""
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
+            <div className="relative">
+              <div className="text-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
+                {p.n}
+              </div>
+              <h3 className="text-display mt-4 text-5xl text-[var(--bone)]">{p.t}</h3>
+              <p className="mt-6 max-w-md text-[var(--bone)]/70">{p.d}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </Scene>
+  );
+}
+
+/* ───────────────────── scene 12: CIERRE ───────────────────── */
+
+function SceneClose() {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { amount: 0.4 });
+
+  return (
+    <Scene id="scene-12" bg="bone">
+      <div ref={ref as React.RefObject<HTMLDivElement>} className="relative h-full w-full flex flex-col justify-center px-10 md:px-20">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1 }}
+        >
+          <Eyebrow index="12" label="Cierre" />
+        </motion.div>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1.4, ease: EASE, delay: 0.3 }}
+          className="text-display mt-10 text-[8vw] md:text-[5.5vw] max-w-6xl leading-[0.95]"
+        >
+          BRAFH ya lidera <br />
+          en producto.
+        </motion.h2>
+
+        <motion.h3
+          initial={{ opacity: 0, y: 30 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 1.4, ease: EASE, delay: 0.7 }}
+          className="text-display mt-6 text-[8vw] md:text-[5.5vw] max-w-6xl text-[var(--rouge)] leading-[0.95]"
+        >
+          Ahora puede liderar <br />
+          en inteligencia comercial.
+        </motion.h3>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 1.4 }}
+          className="mt-16 max-w-xl text-[var(--ink)]/70 text-lg leading-relaxed"
+        >
+          El mejor marketing no es el que llega a más personas. Es el que sabe
+          exactamente a quién llegar, cómo hacerlo y cuánto cuesta hacerlo.
+        </motion.p>
+
+        <div className="absolute bottom-10 left-10 md:left-20 right-10 md:right-20 flex items-end justify-between text-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
+          <span>BRAFH · 2026</span>
+          <span>FIN DE LA PROPUESTA</span>
+        </div>
+      </div>
+    </Scene>
+  );
+}
+
+/* ───────────────────── root experience ───────────────────── */
+
+const SCENES = [
+  SceneHero,
+  SceneSystem,
+  SceneLeaks,
+  SceneKeyMoment,
+  SceneTransformation,
+  SceneRoadmap,
+  SceneVisibilidad,
+  SceneAtribucion,
+  SceneInteligencia,
+  SceneFuture,
+  SceneInnovacion,
+  SceneClose,
+];
+
+function BrafhExperience() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    const sections = Array.from(root.querySelectorAll<HTMLElement>("section[id^='scene-']"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting && e.intersectionRatio > 0.5) {
+            const idx = sections.indexOf(e.target as HTMLElement);
+            if (idx >= 0) setCurrent(idx);
+          }
+        });
+      },
+      { threshold: [0.5, 0.75], root },
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <>
+      <Chrome current={current} total={SCENES.length} />
+      <main
+        ref={containerRef}
+        className="h-screen w-full overflow-y-scroll snap-y snap-mandatory scroll-smooth"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <style>{`main::-webkit-scrollbar{display:none}`}</style>
+        {SCENES.map((S, i) => (
+          <S key={i} />
+        ))}
+      </main>
+    </>
   );
 }
