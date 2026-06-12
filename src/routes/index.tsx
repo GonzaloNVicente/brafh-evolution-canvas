@@ -170,13 +170,13 @@ function SceneHero() {
 /* ───────────────────── scene 2: SISTEMA ACTUAL (living ecosystem) ───────────────────── */
 
 const PLATFORMS = [
-  { name: "Meta Ads", x: 14, y: 24 },
-  { name: "Google Ads", x: 78, y: 18 },
-  { name: "Instagram", x: 28, y: 68 },
-  { name: "Shopify", x: 62, y: 58 },
-  { name: "WhatsApp", x: 18, y: 46 },
-  { name: "Analytics", x: 84, y: 72 },
-  { name: "Odoo", x: 50, y: 38 },
+  { name: "Meta Ads", x: 14, y: 24, slug: "meta" },
+  { name: "Google Ads", x: 78, y: 18, slug: "googleads" },
+  { name: "Instagram", x: 28, y: 68, slug: "instagram" },
+  { name: "Shopify", x: 62, y: 58, slug: "shopify" },
+  { name: "WhatsApp", x: 18, y: 46, slug: "whatsapp" },
+  { name: "Analytics", x: 84, y: 72, slug: "googleanalytics" },
+  { name: "Odoo", x: 50, y: 38, slug: "odoo" },
 ];
 
 function SceneSystem() {
