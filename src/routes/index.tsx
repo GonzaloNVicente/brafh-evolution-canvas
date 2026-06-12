@@ -269,8 +269,14 @@ function SceneSystem() {
                 }}
                 className="relative -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="px-4 py-2 border border-[var(--ink)]/15 bg-[var(--bone)] font-mono text-[11px] tracking-[0.2em] uppercase shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)] flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--rouge)] animate-pulse" />
+                <div className="px-4 py-2 border border-[var(--ink)]/15 bg-[var(--bone)] font-mono text-[11px] tracking-[0.2em] uppercase shadow-[0_8px_30px_-12px_rgba(0,0,0,0.18)] flex items-center gap-2.5">
+                  <img
+                    src={`https://cdn.simpleicons.org/${p.slug}/2B2B2B`}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 opacity-80"
+                    loading="lazy"
+                  />
                   {p.name}
                 </div>
                 {/* dispersing particles (data leaks) */}
