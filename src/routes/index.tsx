@@ -961,9 +961,9 @@ function SceneVisibilidad() {
             <svg className="absolute inset-0 h-full w-full">
               <motion.line
                 x1="22%"
-                y1="50%"
+                y1="62%"
                 x2="78%"
-                y2="50%"
+                y2="62%"
                 stroke="var(--rouge)"
                 strokeWidth="1.2"
                 initial={{ pathLength: 0 }}
@@ -980,7 +980,7 @@ function SceneVisibilidad() {
                     inView
                       ? {
                           cx: ["22%", "78%"],
-                          cy: ["50%", "50%"],
+                          cy: ["62%", "62%"],
                           opacity: [0, 1, 1, 0],
                         }
                       : {}
