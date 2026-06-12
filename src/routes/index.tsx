@@ -643,64 +643,272 @@ function SceneTransformation() {
 
 /* ───────────────────── scene 6: ROADMAP overview ───────────────────── */
 
+function StageMockVisibilidad() {
+  const sources = [
+    { s: "meta", k: "Meta Ads" },
+    { s: "googleads", k: "Google" },
+    { s: "whatsapp", k: "WhatsApp" },
+    { s: "instagram", k: "Instagram" },
+    { s: "tiktok", k: "TikTok" },
+    { s: "googleanalytics", k: "GA4" },
+  ];
+  return (
+    <div className="relative h-[200px] w-full rounded border border-[var(--ink)]/15 bg-[var(--bone)] overflow-hidden">
+      <div className="absolute top-2 left-3 font-mono text-[9px] tracking-[0.25em] text-[var(--ink)]/40">
+        FUENTES · CRUDO
+      </div>
+      <div className="absolute inset-0 pt-8 px-3 grid grid-cols-2 gap-1.5 content-center">
+        {sources.map((p) => (
+          <div
+            key={p.s}
+            className="flex items-center gap-1.5 border border-[var(--ink)]/15 rounded px-2 py-1.5 bg-[var(--bone)]"
+          >
+            <img
+              src={`https://cdn.simpleicons.org/${p.s}/2B2B2B`}
+              alt=""
+              className="h-3 w-3 opacity-70"
+            />
+            <span className="font-mono text-[9px] tracking-wide text-[var(--ink)]/70 truncate">
+              {p.k}
+            </span>
+            <span className="ml-auto h-1 w-1 rounded-full bg-[var(--rouge)]/60" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StageMockAtribucion() {
+  const nodes = [
+    { s: "whatsapp", y: 18 },
+    { s: "meta", y: 58 },
+    { s: "googleads", y: 98 },
+    { s: "wordpress", y: 138 },
+  ];
+  return (
+    <div className="relative h-[200px] w-full rounded border border-[var(--ink)]/15 bg-[var(--bone)] overflow-hidden">
+      <div className="absolute top-2 left-3 font-mono text-[9px] tracking-[0.25em] text-[var(--ink)]/40">
+        APIs · ODOO CRM
+      </div>
+      <svg viewBox="0 0 320 200" className="absolute inset-0 w-full h-full">
+        {nodes.map((n, i) => (
+          <path
+            key={i}
+            d={`M 70 ${n.y + 12} C 140 ${n.y + 12}, 180 100, 250 100`}
+            stroke="#8B1620"
+            strokeWidth="1"
+            fill="none"
+            strokeDasharray="2 3"
+            opacity="0.55"
+          />
+        ))}
+        <rect
+          x="230"
+          y="78"
+          width="60"
+          height="44"
+          rx="3"
+          fill="#8B1620"
+          opacity="0.92"
+        />
+        <text
+          x="260"
+          y="98"
+          textAnchor="middle"
+          fill="#F6F4EF"
+          fontSize="8"
+          fontFamily="ui-monospace, monospace"
+          letterSpacing="1.2"
+        >
+          ODOO
+        </text>
+        <text
+          x="260"
+          y="110"
+          textAnchor="middle"
+          fill="#F6F4EF"
+          fontSize="7"
+          fontFamily="ui-monospace, monospace"
+          opacity="0.7"
+        >
+          CRM
+        </text>
+      </svg>
+      <div className="absolute left-3 top-8 bottom-3 flex flex-col justify-around w-[60px]">
+        {nodes.map((n) => (
+          <div
+            key={n.s}
+            className="flex items-center gap-1.5 border border-[var(--ink)]/15 rounded px-1.5 py-1 bg-[var(--bone)]"
+          >
+            <img
+              src={`https://cdn.simpleicons.org/${n.s}/2B2B2B`}
+              alt=""
+              className="h-2.5 w-2.5 opacity-70"
+            />
+            <span className="font-mono text-[8px] text-[var(--ink)]/60">API</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StageMockInteligencia() {
+  const bars = [40, 62, 48, 78, 90, 70, 96];
+  return (
+    <div className="relative h-[200px] w-full rounded border border-[var(--ink)]/15 bg-[var(--bone)] overflow-hidden">
+      <div className="absolute top-2 left-3 font-mono text-[9px] tracking-[0.25em] text-[var(--ink)]/40">
+        DASHBOARD · INSIGHTS
+      </div>
+      <div className="absolute top-8 left-3 right-3 grid grid-cols-3 gap-1.5">
+        {[
+          { l: "ROI", v: "4.2×" },
+          { l: "CPL", v: "−38%" },
+          { l: "CONV", v: "12.7%" },
+        ].map((k) => (
+          <div key={k.l} className="border border-[var(--ink)]/15 rounded px-1.5 py-1">
+            <div className="font-mono text-[7px] tracking-[0.2em] text-[var(--ink)]/45">
+              {k.l}
+            </div>
+            <div className="font-display font-bold text-[13px] text-[var(--ink)] leading-tight">
+              {k.v}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="absolute left-3 right-3 bottom-3 h-[110px] border border-[var(--ink)]/15 rounded p-2">
+        <div className="flex items-end gap-1 h-[70px]">
+          {bars.map((h, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-[var(--rouge)]/80"
+              style={{ height: `${h}%` }}
+            />
+          ))}
+        </div>
+        <svg viewBox="0 0 100 20" className="w-full h-4 mt-1">
+          <polyline
+            points="0,16 14,12 28,14 42,8 56,10 70,5 84,7 100,2"
+            fill="none"
+            stroke="#8B1620"
+            strokeWidth="1"
+          />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 function SceneRoadmap() {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { amount: 0.3 });
 
   const stages = [
-    { n: "01", t: "Visibilidad", m: "Mes 01 — 03" },
-    { n: "02", t: "Atribución", m: "Mes 04 — 06" },
-    { n: "03", t: "Inteligencia", m: "Mes 07 — 09" },
+    {
+      n: "01",
+      t: "Visibilidad",
+      m: "Mes 01 — 03",
+      d: "Datos visibles",
+      Mock: StageMockVisibilidad,
+    },
+    {
+      n: "02",
+      t: "Atribución",
+      m: "Mes 04 — 06",
+      d: "Datos conectados",
+      Mock: StageMockAtribucion,
+    },
+    {
+      n: "03",
+      t: "Inteligencia",
+      m: "Mes 07 — 09",
+      d: "Decisiones inteligentes",
+      Mock: StageMockInteligencia,
+    },
   ];
 
   return (
     <Scene id="scene-6" bg="bone">
       <div
         ref={ref as React.RefObject<HTMLDivElement>}
-        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24 flex flex-col"
+        className="relative h-full w-full px-10 py-16 md:px-20 md:py-20 flex flex-col"
       >
         <Eyebrow index="06" label="Roadmap" />
-        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
-          Tres etapas.<br />
+        <h2 className="font-display font-bold tracking-tight mt-4 text-4xl md:text-5xl max-w-3xl">
+          Tres etapas.{" "}
           <span className="text-[var(--ink)]/40">Una sola dirección.</span>
         </h2>
 
-        <div className="relative mt-auto pt-20">
+        <div className="relative mt-auto pt-10">
+          {/* connecting line through mockups */}
           <motion.div
             initial={{ scaleX: 0 }}
             animate={inView ? { scaleX: 1 } : {}}
-            transition={{ duration: 2, ease: EASE, delay: 0.3 }}
+            transition={{ duration: 1.8, ease: EASE, delay: 0.4 }}
             style={{ transformOrigin: "left" }}
-            className="absolute top-[140px] left-0 right-0 h-px bg-[var(--ink)]/20"
+            className="absolute top-[100px] left-[8%] right-[8%] h-px bg-[var(--ink)]/25"
           />
-          <div className="grid grid-cols-3 gap-8">
-            {stages.map((s, i) => (
-              <motion.div
-                key={s.n}
-                initial={{ opacity: 0, y: 30 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 1, ease: EASE, delay: 0.5 + i * 0.3 }}
-                className="relative"
-              >
-                <div className="font-mono text-[11px] tracking-[0.3em] text-[var(--rouge)]">
-                  ETAPA {s.n}
-                </div>
-                <h3 className="font-display font-bold tracking-tight mt-3 text-4xl md:text-5xl">
-                  {s.t}
-                </h3>
-                <div className="relative my-12">
+          {/* arrows between stages */}
+          {[0, 1].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={inView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.6, delay: 1.4 + i * 0.4, ease: EASE }}
+              className="absolute top-[92px] font-mono text-[var(--rouge)] text-base"
+              style={{ left: `${33.3 * (i + 1)}%`, transform: "translateX(-50%)" }}
+            >
+              →
+            </motion.div>
+          ))}
+
+          <div className="grid grid-cols-3 gap-6">
+            {stages.map((s, i) => {
+              const Mock = s.Mock;
+              return (
+                <motion.div
+                  key={s.n}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.9, ease: EASE, delay: 0.5 + i * 0.25 }}
+                  className="relative flex flex-col"
+                >
+                  <div className="flex items-baseline justify-between mb-2">
+                    <div className="font-mono text-[10px] tracking-[0.3em] text-[var(--rouge)]">
+                      ETAPA {s.n}
+                    </div>
+                    <div className="font-mono text-[10px] text-[var(--ink)]/45 tracking-[0.2em]">
+                      {s.m}
+                    </div>
+                  </div>
+                  <h3 className="font-display font-bold tracking-tight text-2xl md:text-3xl mb-1">
+                    {s.t}
+                  </h3>
+                  <div className="font-mono text-[10px] tracking-[0.18em] uppercase text-[var(--ink)]/55 mb-4">
+                    {s.d}
+                  </div>
+
+                  {/* node on the connecting line */}
+                  <div className="relative h-3 mb-3">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={inView ? { scale: 1 } : {}}
+                      transition={{ duration: 0.5, delay: 1 + i * 0.3, ease: EASE }}
+                      className="absolute left-1/2 -translate-x-1/2 h-3 w-3 rounded-full bg-[var(--rouge)] ring-4 ring-[var(--bone)]"
+                    />
+                  </div>
+
                   <motion.div
-                    initial={{ scale: 0 }}
-                    animate={inView ? { scale: 1 } : {}}
-                    transition={{ duration: 0.6, delay: 1 + i * 0.3, ease: EASE }}
-                    className="h-3 w-3 rounded-full bg-[var(--rouge)]"
-                  />
-                </div>
-                <div className="font-mono text-xs text-[var(--ink)]/50 tracking-[0.2em]">
-                  {s.m}
-                </div>
-              </motion.div>
-            ))}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={inView ? { opacity: 1, y: 0 } : {}}
+                    transition={{ duration: 0.9, ease: EASE, delay: 1.2 + i * 0.25 }}
+                  >
+                    <Mock />
+                  </motion.div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
