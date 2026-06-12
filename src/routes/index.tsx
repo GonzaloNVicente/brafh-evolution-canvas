@@ -1036,84 +1036,196 @@ function SceneAtribucion() {
 
   const leads = useMemo(
     () =>
-      Array.from({ length: 16 }).map((_, i) => ({
+      Array.from({ length: 6 }).map((_, i) => ({
         ch: i % 4,
-        delay: rand(i) * 1.6,
+        delay: rand(i) * 1.2,
       })),
     [],
   );
+
+  const formFields = [
+    { label: "Nombre", value: "Martín Álvarez" },
+    { label: "Teléfono", value: "+54 9 351 555 0148" },
+    { label: "Producto de interés", value: "Línea industrial · BRAFH-300" },
+  ];
 
   return (
     <Scene id="scene-8" bg="bone">
       <div
         ref={ref as React.RefObject<HTMLDivElement>}
-        className="relative h-full w-full px-10 py-20 md:px-20 md:py-24"
+        className="relative h-full w-full px-10 py-16 md:px-20 md:py-20"
       >
         <Eyebrow index="08" label="Etapa 02 · Atribución" />
-        <h2 className="font-display font-bold tracking-tight mt-6 text-5xl md:text-6xl max-w-3xl">
+        <h2 className="font-display font-bold tracking-tight mt-5 text-4xl md:text-5xl max-w-3xl">
           Cada venta <br />
           <span className="text-[var(--rouge)]">tiene un origen.</span>
         </h2>
 
-        <div className="mt-14 grid grid-cols-4 gap-3">
-          {channels.map((c, i) => (
+        <div className="mt-10 grid grid-cols-12 gap-10 items-start">
+          {/* LEFT — capture → registry */}
+          <div className="col-span-12 lg:col-span-7 relative">
+            {/* form mockup */}
             <motion.div
-              key={c.name}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.3 + i * 0.1 }}
-              className="relative"
+              transition={{ duration: 0.7, ease: EASE }}
+              className="relative max-w-[440px] border border-[var(--ink)]/15 bg-white shadow-[0_30px_60px_-40px_rgba(0,0,0,0.35)]"
             >
-              <div className="flex items-baseline justify-between font-mono text-[10px] tracking-[0.22em] uppercase">
-                <span>{c.name}</span>
-                <span className="text-[var(--ink)]/50">{c.value}%</span>
+              {/* form header — WhatsApp/web hybrid */}
+              <div className="flex items-center justify-between border-b border-[var(--ink)]/10 px-5 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[var(--rouge)]" />
+                  <span className="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--ink)]/70">
+                    Formulario · WhatsApp Business
+                  </span>
+                </div>
+                <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/40">
+                  brafh.com.ar
+                </span>
               </div>
-              <div className="mt-2 h-1 w-full bg-[var(--ink)]/10 overflow-hidden">
+
+              <div className="px-5 py-5 space-y-4">
+                {formFields.map((f, i) => (
+                  <motion.div
+                    key={f.label}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={inView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ duration: 0.5, delay: 0.4 + i * 0.12 }}
+                  >
+                    <div className="font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/50">
+                      {f.label}
+                    </div>
+                    <div className="mt-1.5 border-b border-[var(--ink)]/20 pb-1.5 text-sm text-[var(--ink)]">
+                      {f.value}
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* origin field — highlighted */}
                 <motion.div
-                  initial={{ scaleX: 0 }}
-                  animate={inView ? { scaleX: c.value / 40 } : {}}
-                  transition={{ duration: 1.2, delay: 0.5 + i * 0.1, ease: EASE }}
-                  style={{ transformOrigin: "left", background: c.color }}
-                  className="h-full"
-                />
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.5, delay: 0.85 }}
+                  className="border border-[var(--rouge)]/30 bg-[var(--rouge)]/[0.04] px-3 py-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--rouge)]">
+                      utm_source · origen
+                    </div>
+                    <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/40">
+                      auto
+                    </span>
+                  </div>
+                  <div className="mt-1 text-sm font-medium text-[var(--ink)]">
+                    meta · ig_reels_q4
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={inView ? { opacity: 1 } : {}}
+                  transition={{ duration: 0.4, delay: 1.1 }}
+                  className="pt-1 flex items-center justify-between"
+                >
+                  <span className="font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/40">
+                    enviar consulta
+                  </span>
+                  <span className="inline-block bg-[var(--ink)] text-[var(--bone)] px-4 py-2 font-mono text-[10px] tracking-[0.22em] uppercase">
+                    Registrar →
+                  </span>
+                </motion.div>
               </div>
             </motion.div>
-          ))}
-        </div>
 
-        {/* leads being tagged with origin */}
-        <div className="mt-12 grid grid-cols-4 gap-3 gap-y-3">
-          {leads.map((l, i) => (
+            {/* connecting arrow */}
             <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={inView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.8 + l.delay, ease: EASE }}
-              className="flex items-center justify-between border border-[var(--ink)]/12 bg-[var(--bone)] px-3 py-2 font-mono text-[10px] tracking-[0.18em]"
+              initial={{ opacity: 0 }}
+              animate={inView ? { opacity: 1 } : {}}
+              transition={{ duration: 0.5, delay: 1.2 }}
+              className="hidden lg:flex absolute top-[55%] -right-2 items-center gap-2 font-mono text-[9px] tracking-[0.22em] uppercase text-[var(--ink)]/50"
             >
-              <span className="text-[var(--ink)]/70">
-                L-{String(420 + i).padStart(4, "0")}
-              </span>
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={inView ? { opacity: 1 } : {}}
-                transition={{ delay: 1.4 + l.delay }}
-                className="uppercase"
-                style={{ color: channels[l.ch].color }}
-              >
-                {channels[l.ch].name}
-              </motion.span>
+              <span className="h-px w-16 bg-[var(--ink)]/25" />
+              <span>clasifica</span>
+              <span>→</span>
             </motion.div>
-          ))}
+          </div>
+
+          {/* RIGHT — channel attribution + leads */}
+          <div className="col-span-12 lg:col-span-5">
+            <div className="font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--ink)]/50 mb-3">
+              Atribución por canal
+            </div>
+            <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+              {channels.map((c, i) => (
+                <motion.div
+                  key={c.name}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: 0.4 + i * 0.08 }}
+                >
+                  <div className="flex items-baseline justify-between font-mono text-[10px] tracking-[0.22em] uppercase">
+                    <span>{c.name}</span>
+                    <span className="text-[var(--ink)]/50">{c.value}%</span>
+                  </div>
+                  <div className="mt-2 h-1 w-full bg-[var(--ink)]/10 overflow-hidden">
+                    <motion.div
+                      initial={{ scaleX: 0 }}
+                      animate={inView ? { scaleX: c.value / 40 } : {}}
+                      transition={{ duration: 1.1, delay: 0.6 + i * 0.08, ease: EASE }}
+                      style={{ transformOrigin: "left", background: c.color }}
+                      className="h-full"
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-8 font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--ink)]/50 mb-3">
+              Leads etiquetados
+            </div>
+            <div className="space-y-2">
+              {leads.map((l, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.45, delay: 1.0 + l.delay, ease: EASE }}
+                  className="flex items-center justify-between border border-[var(--ink)]/12 bg-white px-3 py-2 font-mono text-[10px] tracking-[0.18em]"
+                >
+                  <span className="text-[var(--ink)]/70">
+                    L-{String(420 + i).padStart(4, "0")}
+                  </span>
+                  <span className="text-[var(--ink)]/40">
+                    {String(11 + i).padStart(2, "0")}:{String((i * 13) % 60).padStart(2, "0")}
+                  </span>
+                  <span
+                    className="uppercase font-medium"
+                    style={{ color: channels[l.ch].color }}
+                  >
+                    {channels[l.ch].name}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div className="absolute bottom-10 right-10 md:right-20 font-mono text-[10px] tracking-[0.3em] text-[var(--ink)]/40">
-          ETIQUETADO AUTOMÁTICO
-        </div>
+        {/* flow legend */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 1.5 }}
+          className="absolute bottom-8 left-10 md:left-20 right-10 md:right-20 flex items-center justify-between font-mono text-[9px] tracking-[0.28em] uppercase text-[var(--ink)]/45"
+        >
+          <span>Captura → Registro → Canal → Atribución</span>
+          <span>Etiquetado automático</span>
+        </motion.div>
       </div>
     </Scene>
   );
 }
+
+
 
 /* ───────────────────── scene 9: INTELIGENCIA · Dashboard ───────────────────── */
 
